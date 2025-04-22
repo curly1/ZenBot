@@ -71,6 +71,9 @@ python src/baseline_agent.py
 ```
 
 - **ZenBot**:
+
+Download [Mistral-7B-Instruct-v0.3.Q4_K_M.gguf](https://huggingface.co/MaziyarPanahi/Mistral-7B-Instruct-v0.3-GGUF/blob/main/Mistral-7B-Instruct-v0.3.Q4_K_M.gguf) model.
+
 ```
 llama-server -m pretrained/gguf_models/Mistral-7B-Instruct-v0.3.Q4_K_M.gguf --port 8080 --jinja
 python src/zenbot.py
@@ -150,7 +153,8 @@ pytest --cov=src
   - [ ] sentiment recognition
 - [ ] Use real data for evaluation
 - [ ] Code improvements:
-  - [ ] Tool input validation
+  - [ ] Tool input validation (e.g. order_info JSON)
   - [ ] Retry logic
   - [ ] Fallback responses
+  - [ ] Add more logging
 
