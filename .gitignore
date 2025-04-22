@@ -1,4 +1,5 @@
 pretrained
+logs
 *.pyc
 *.pyo
 *.pyd
