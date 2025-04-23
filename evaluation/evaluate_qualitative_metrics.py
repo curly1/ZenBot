@@ -24,6 +24,7 @@ import statistics
 import importlib
 import logging
 import requests
+import re
 
 # TODO - add source directory to path in a different way
 SRC = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src"))
@@ -41,15 +42,16 @@ def build_judge_prompt(user_input: str, response: str) -> dict:
         "content": (
             "You are an expert judge evaluating chatbot responses. "
             "Rate the following response on three criteria: naturalness, coherence, and helpfulness. "
-            "A helpful response is in linke with the user's intent. "
-            "Examples of unhelpful responses:"
-            "- Sorry, I’m having trouble reaching the language LLM server right now. Please try again later."
-            "- Sorry, I didn't understand that."
-            "- Sorry, an error occurred."
-            "- Error generating final response."
-            "- Unknown tool."
+            "A helpful response is in line with the user's intent. "
+            "Examples of unhelpful responses: "
+            "- Sorry. I’m having trouble reaching the language LLM server right now. Please try again later. "
+            "- Sorry. I didn't understand that. "
+            "- Sorry. An error occurred. "
+            "- Error generating final response. "
+            "- Unknown tool. "
             "Give each a score from 1 to 5 and a one-sentence justification for each. "
             "Format your output as valid JSON with keys 'naturalness', 'coherence', 'helpfulness', each mapping to an object with 'score' and 'reason'. "
+            "Respond only with the raw JSON object, no extra text or markdown."
         )
     }
     user = {
@@ -102,7 +104,7 @@ def main():
         print(f"Processing example {idx}/{total} (ID: {example_id})")
 
         # Log example metadata
-        logger.debug("Example ID: %s", example_id)
+        logger.info("Example ID: %s", example_id)
 
         # Run the agent to get the response
         try:
@@ -119,9 +121,12 @@ def main():
             resp.raise_for_status()
             judge_output = resp.json().get('choices', [])[0].get('message', {}).get('content', '')
             # Parse JSON from judge_output
-            metrics = json.loads(judge_output)
+            m = re.search(r'\{.*\}', judge_output, re.DOTALL)
+            if not m:
+                raise ValueError(f"No JSON found in judge output: {judge_output!r}")
+            metrics = json.loads(m.group(0))
         except Exception as e:
-            logger.error("Judge LLM failed for %s: %s", example_id, e)
+            logger.error("Judge LLM failed for example %s: %s", example_id, e)
             continue
 
         # Extract and log
