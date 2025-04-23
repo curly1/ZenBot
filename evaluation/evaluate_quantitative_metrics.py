@@ -45,8 +45,6 @@ def main():
                         help="Path to input CSV with example_id,user_input,order_info_json,correct_tool,correct_policy,correct_api_status")
     args = parser.parse_args()
 
-    print("Running evaluation...")
-
     # Dynamically import the agent module (baseline or zenbot)
     agent_mod = importlib.import_module(args.agent)
     run_agent = agent_mod.run_agent
@@ -63,71 +61,80 @@ def main():
     policy_evaluated = 0
     latencies = []
 
+    # Load all examples to enable progress reporting
     with open(args.csv, newline='', encoding='utf-8') as csvfile:
         reader = csv.DictReader(csvfile)
-        for row in reader:
-            example_id = row['example_id']
-            user_input = row['user_input']
-            order_info = json.loads(row['order_info_json'])
-            expected_tool = row['correct_tool']
-            expected_policy = str_to_bool(row['correct_policy'])
-            exp_api_raw = row['correct_api_status'].strip()
-            expected_api = exp_api_raw if exp_api_raw else None
+        rows = list(reader)
 
-            # Log example metadata
-            logger.debug("Example ID: %s", example_id)
+    total_examples = len(rows)
+    print(f"Starting evaluation of {total_examples} examples with agent: {args.agent}\n")
 
-            # Run the agent
-            try:
-                result = run_agent(user_input, order_info, args.log_path)
-            except Exception as e:
-                print(f"Example {example_id} raised exception: {e}", file=sys.stderr)
-                continue
+    for idx, row in enumerate(rows, start=1):
+        example_id = row['example_id']
+        user_input = row['user_input']
+        order_info = json.loads(row['order_info_json'])
+        expected_tool = row['correct_tool']
+        expected_policy = str_to_bool(row['correct_policy'])
+        exp_api_raw = row['correct_api_status'].strip()
+        expected_api = exp_api_raw if exp_api_raw else None
 
-            # Intent Accuracy
-            if result.tool_name == expected_tool:
-                intent_correct += 1
-                logger.debug("Intent correct: True (actual=%s, expected=%s)", result.tool_name, expected_tool)
+        # Progress
+        print(f"Processing example {idx}/{total_examples} (ID: {example_id})")
+
+        # Log example metadata
+        logger.debug("Example ID: %s", example_id)
+
+        # Run the agent
+        try:
+            result = run_agent(user_input, order_info, args.log_path)
+        except Exception as e:
+            print(f"Example {example_id} raised exception: {e}", file=sys.stderr)
+            continue
+
+        # Intent Accuracy
+        if result.tool_name == expected_tool:
+            intent_correct += 1
+            logger.debug("Intent correct: True (actual=%s, expected=%s)", result.tool_name, expected_tool)
+        else:
+            logger.debug("Intent correct: False (actual=%s, expected=%s)", result.tool_name, expected_tool)
+
+        # Policy Adherence - only if the intent was recognized correctly
+        # and we actually called the tool (so api_status and tool_output exist)
+        if (
+            result.tool_name == expected_tool
+            and result.api_status is not None
+            and result.tool_output is not None
+        ):
+            policy_evaluated += 1
+            if result.policy_passed == expected_policy:
+                policy_correct += 1
+                logger.debug(
+                    "Policy correct: True (actual=%s, expected=%s)",
+                    result.policy_passed,
+                    expected_policy,
+                )
             else:
-                logger.debug("Intent correct: False (actual=%s, expected=%s)", result.tool_name, expected_tool)
+                logger.debug(
+                    "Policy correct: False (actual=%s, expected=%s)",
+                    result.policy_passed,
+                    expected_policy,
+                )
 
-            # Policy Adherence - only if the intent was recognized correctly
-            # and we actually called the tool (so api_status and tool_output exist)
-            if (
-                result.tool_name == expected_tool
-                and result.api_status is not None
-                and result.tool_output is not None
-            ):
-                policy_evaluated += 1
-                if result.policy_passed == expected_policy:
-                    policy_correct += 1
-                    logger.debug(
-                        "Policy correct: True (actual=%s, expected=%s)",
-                        result.policy_passed,
-                        expected_policy,
-                    )
-                else:
-                    logger.debug(
-                        "Policy correct: False (actual=%s, expected=%s)",
-                        result.policy_passed,
-                        expected_policy,
-                    )
+        # API Status Accuracy
+        if expected_api is not None and result.api_status is not None:
+            api_attempts += 1
+            # Normalize: anything except "error" counts as "ok"
+            actual_api = "ok" if result.api_status != "error" else "error"
+            if actual_api == expected_api:
+                api_correct += 1
+                logger.debug("API status OK: True (normalized actual=%s, expected=%s)", actual_api, expected_api)
+            else:
+                logger.debug("API status OK: False (normalized actual=%s, expected=%s)", actual_api, expected_api)
 
-            # API Status Accuracy
-            if expected_api is not None and result.api_status is not None:
-                api_attempts += 1
-                # Normalize: anything except "error" counts as "ok"
-                actual_api = "ok" if result.api_status != "error" else "error"
-                if actual_api == expected_api:
-                    api_correct += 1
-                    logger.debug("API status OK: True (normalized actual=%s, expected=%s)", actual_api, expected_api)
-                else:
-                    logger.debug("API status OK: False (normalized actual=%s, expected=%s)", actual_api, expected_api)
+        # Latency
+        latencies.append(result.response_time)
 
-            # Latency
-            latencies.append(result.response_time)
-
-            total += 1
+        total += 1
 
     # Compute final metrics
     intent_acc = (intent_correct / total * 100) if total else 0.0
