@@ -132,8 +132,10 @@ We also provide a simple rule-based agent which serves as a baseline for the exp
 PDF report: [link](docs/results.pdf)
 
 # ✅ Testing
+
+Use pytest to run all tests from project root.
 ```bash
-pytest --cov=src
+pytest
 ```
 
 # 🤖 Future Enhancements
@@ -157,4 +159,4 @@ pytest --cov=src
   - [ ] Retry logic
   - [ ] Fallback responses
   - [ ] Add more logging
-
+  - [ ] Add unit tests for ZenBot (emotion escalation, LLM unreachable, no tool call, full pipeline flow, cancel flow with policy deny, cancel flow with API error)
