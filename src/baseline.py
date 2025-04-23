@@ -42,7 +42,7 @@ def route_message(user_input: str, order_info: dict) -> AgentResult:
         status = resp.get("status", "error")
         final = (
             TEMPLATES["track"].format(order_id=order_id, status=resp.get("details", status))
-            if status == "ok"
+            if status != "error"
             else TEMPLATES["error"].format(error=resp.get("message", "Unknown"))
         )
         pretty_section("📲 Model requested tool call", "Tool name: track_order")
