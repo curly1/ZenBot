@@ -1,8 +1,8 @@
 """
-Evaluation script for Baseline and ZenBot agents using run_agent.
+Evaluation script for Baseline and ZenBot agents: quantitative response quality metrics.
 
 Usage:
-    python evaluate_quantitative_metrics.py \
+    python evaluation/evaluate_quantitative_metrics.py \
         --agent baseline \
         --log-path logs/sample_data/baseline.log \
         --csv data/sample_data.csv
@@ -78,7 +78,7 @@ def main():
         exp_api_raw = row['correct_api_status'].strip()
         expected_api = exp_api_raw if exp_api_raw else None
 
-        # Progress
+        # Print progress
         print(f"Processing example {idx}/{total_examples} (ID: {example_id})")
 
         # Log example metadata
@@ -150,16 +150,21 @@ def main():
         'stdev': statistics.stdev(latencies) if len(latencies) > 1 else 0.0
     }
 
-    # Print results
-
-    logger.info("Evaluated %d examples with agent: %s", total, args.agent)
-    logger.info("Intent Accuracy:      %.2f%% (%d/%d)", intent_acc, intent_correct, total)
-    logger.info("Policy Adherence:     %.2f%% (%d/%d)", policy_acc, policy_correct, policy_evaluated if policy_evaluated else 0)
-    logger.info("API Status Accuracy:  %.2f%% (%d/%d)", api_acc, api_correct, api_attempts if api_attempts else 0)
-    logger.info("Latency (seconds): min=%.3f mean=%.3f max=%.3f median=%.3f stdev=%.3f",
-                latency_summary['min'], latency_summary['mean'], latency_summary['max'],
-                latency_summary['median'], latency_summary['stdev'])
-    
+    # Log and print summary
+    summary = (
+        f"Evaluated {total} examples with agent: {args.agent}\n\n"
+        f"Intent Accuracy:      {intent_acc:.2f}% ({intent_correct}/{total})\n"
+        f"Policy Adherence:     {policy_acc:.2f}% ({policy_correct}/{policy_evaluated if policy_evaluated else 0})\n"
+        f"API Status Accuracy:  {api_acc:.2f}% ({api_correct}/{api_attempts if api_attempts else 0})\n\n"
+        "Latency (seconds):\n"
+        f"  min    = {latency_summary['min']:.3f}\n"
+        f"  mean   = {latency_summary['mean']:.3f}\n"
+        f"  max    = {latency_summary['max']:.3f}\n"
+        f"  median = {latency_summary['median']:.3f}\n"
+        f"  stdev  = {latency_summary['stdev']:.3f}"
+    )
+    logger.info(summary)
+    pretty_section("📊 Evaluation summary", summary)
     pretty_section("📜 Log file", f"Log path: {args.log_path}")
 
 if __name__ == '__main__':
