@@ -202,14 +202,11 @@ def route_message(user_input: str, order_info: dict) -> AgentResult:
 
     # Handle tool call
     if not calls:
-        pretty_section("📲 Model requested tool call", "Tool name: none")
         return AgentResult("none", False, None, None, "No tool call triggered by the model.", time.time() - start)
     
     call = calls[0]
     tool_name = call["function"]["name"]
     args = json.loads(call["function"]["arguments"])
-    pretty_section("📲 Model requested tool call", 
-                   f"Tool name: {tool_name}\nArguments: {json.dumps(args, indent=2)}")
 
     # Execute tool logic
     policy_passed = True
@@ -337,6 +334,7 @@ if __name__ == "__main__":
     result = run_agent(user_input, order_info, log_path)
 
     # Print some more info for the user
+    pretty_section("📲 Tool name", result.tool_name)
     pretty_section("🔧 Tool output", json.dumps(result.tool_output, indent=2))
     pretty_section("🤖 Final response", result.final_response, wrap=True)
     pretty_section("📜 Log file", f"Log path: {log_path}")

@@ -54,7 +54,6 @@ def route_message(user_input: str, order_info: dict) -> AgentResult:
     user_id = order_info["user_id"]
 
     if "track" in text or "status" in text:
-        pretty_section("📲 Model requested tool call", "Tool name: track_order")
         resp = OrderTrackingClient().track(order_id)
         status = resp.get("status", "error")
         final = (
@@ -65,7 +64,6 @@ def route_message(user_input: str, order_info: dict) -> AgentResult:
         return AgentResult("track_order", True, status, resp, final, time.time() - start)
 
     if "cancel" in text:
-        pretty_section("📲 Model requested tool call", "Tool name: cancel_order")
         if not can_cancel(order_date, user_id):
             return AgentResult(
                 tool_name="cancel_order",
@@ -147,6 +145,7 @@ if __name__ == "__main__":
     result = run_agent(user_input, order_info, log_path)
 
     # Print some more info for the user
+    pretty_section("📲 Tool name", result.tool_name)
     pretty_section("🔧 Tool output", json.dumps(result.tool_output, indent=2))
     pretty_section("🤖 Final response", result.final_response)
     pretty_section("📜 Log file", f"Log path: {log_path}")
