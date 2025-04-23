@@ -121,7 +121,11 @@ We also provide a simple rule-based agent which serves as a baseline for the exp
 | Policy Adherence | Quantitative | % of chatbot responses correctly adhering to policies |
 | API Success Rate | Quantitative | % of API calls returning a successful status (no timeouts or errors) |
 | Latency | Quantitative | End‑to‑end response times |
-| Response quality | Qualitative | Naturalness, coherence, helpfulness of the response |
+| Response naturalness | Qualitative | Subjective measure of the naturalness of the response (score 1-5) |
+| Response coherence | Qualitative | Subjective measure of the coherence of the response (score 1-5) |
+| Response helpfulness | Qualitative | Subjective measure of the helpfulness of the response  (score 1-5) |
+| Response quality | Qualitative | Objective, binary measure of response quality (i.e. meets a minimum quality threshold) |
+
 
 ### Test Cases
 - Eligible and ineligible order cancellations
@@ -168,8 +172,8 @@ pytest
 - [ ] Experiment with different hyper-parameters for the LLM model (e.g. temperature)
 - [ ] LLM fine-tuning
 - [ ] Use RAG
-- [ ] [Add robust error handling and recovery]
 - [ ] Evaluate:
+  - [ ] LLM judge evaluation (alignment, compute inter‑rater agreement)
   - [ ] safety (e.g. revealing sensitive information)
   - [ ] hallucinations
   - [ ] sentiment recognition
@@ -180,3 +184,4 @@ pytest
   - [ ] Fallback responses
   - [ ] Add more logging
   - [ ] Add unit tests for ZenBot (emotion escalation, LLM unreachable, no tool call, full pipeline flow, cancel flow with policy deny, cancel flow with API error)
+  - [ ] Add LLM model download to utils
