@@ -129,11 +129,22 @@ We also provide a simple rule-based agent which serves as a baseline for the exp
 
 ### How to run
 
+Evaluation for quantitative metrics:
+
 ```bash
 python evaluation/evaluate_quantitative_metrics.py \
   --agent {baseline,zenbot} \
   --csv data/sample_data.csv \
-  --log-path logs/sample_data/baseline.log
+  --log-path logs/sample_data/{baseline,zenbot}_quantitative.log
+```
+
+Evaluation for qualitative metrics:
+
+```bash
+python evaluation/evaluate_quantitative_metrics.py \
+  --agent {baseline,zenbot} \
+  --csv data/sample_data.csv \
+  --log-path logs/sample_data/{baseline,zenbot}_quantitative.log
 ```
 
 ### Results
