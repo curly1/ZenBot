@@ -277,6 +277,38 @@ def route_message(user_input: str, order_info: dict) -> AgentResult:
 
     return AgentResult(tool_name, policy_passed, api_status, tool_output, final_response, time.time() - start)
 
+# TODO - create a shared driver for both baseline and zenbot
+def run_agent(user_input: str, order_info: dict, log_path: str) -> AgentResult:
+    """
+    Run the baseline agent with the provided user input and order information.
+    Args:
+        user_input (str): The user's input message.
+        order_info (dict): Information about the order, including order_id, order_date, and user_id.
+        log_path (str): Path to the log file.
+    Returns:
+        AgentResult: The result of the agent's processing.
+    """
+    # Configure logger
+    logger = logging.getLogger(__name__)
+    configure_logger(log_path, level=logging.INFO)
+
+    # Validate inputs
+    if not validate_inputs(user_input, order_info):
+        raise ValueError("Invalid input data. Please check your inputs.")
+
+    # Run baseline agent
+    result = route_message(user_input, order_info)
+
+    # Log the results
+    logger.info("Tool requested: %s", result.tool_name)
+    logger.info("Policy passed: %s", result.policy_passed)
+    logger.info("API status: %s", result.api_status)
+    logger.info("Tool output: %s", result.tool_output)
+    logger.info("Final response: %s", result.final_response)
+    logger.info("Response time: %s", f"{result.response_time:.2f} seconds.")
+
+    return result
+
 if __name__ == "__main__":
     if len(sys.argv) != 4:
         print("Usage: python3 src/zenbot.py '<user_input>' '<order_info_json>' '<log_path>'")
@@ -285,15 +317,6 @@ if __name__ == "__main__":
     user_input = sys.argv[1]
     order_info = json.loads(sys.argv[2])
     log_path = sys.argv[3]
-
-    # Configure logger
-    logger = logging.getLogger(__name__)
-    configure_logger(log_path, level=logging.INFO)
-
-    # Validate inputs
-    if not validate_inputs(user_input, order_info):
-        print("Invalid input data. Please check your inputs.")
-        sys.exit(1)
 
     banner = (
         "======================================================================\n"
@@ -305,26 +328,15 @@ if __name__ == "__main__":
     )
     print(banner)
 
-    # Input details
+    # Print input details
     pretty_section(
         "💬 Using input data:",
         f"Prompt: {user_input}\nOrder info: {json.dumps(order_info, indent=2)}"
     )
 
-    # Run ZenBot
-    start = time.time()
-    result = route_message(user_input, order_info)
-    end = time.time()
+    result = run_agent(user_input, order_info, log_path)
 
-    # Print some info for the user
+    # Print some more info for the user
     pretty_section("🔧 Tool output", json.dumps(result.tool_output, indent=2))
     pretty_section("🤖 Final response", result.final_response, wrap=True)
     pretty_section("📜 Log file", f"Log path: {log_path}")
-
-    # Log the results    
-    logger.info("Tool requested: %s", result.tool_name)
-    logger.info("Policy passed: %s", result.policy_passed)
-    logger.info("API status: %s", result.api_status)
-    logger.info("Tool output: %s", result.tool_output)
-    logger.info("Final response: %s", result.final_response)
-    logger.info("ZenBot finished, response time: %s", f"{result.response_time:.2f} seconds.")
