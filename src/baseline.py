@@ -4,12 +4,11 @@ baseline.py
 A simple rule-based chatbot for order cancellation and tracking.
 """
 
-import logging
-import sys
-import os
-import json
+import sys, os, json, logging
+from dataclasses import dataclass
 from api_clients import OrderCancellationClient, OrderTrackingClient
-from policies import can_cancel, can_return
+from policies import can_cancel
+from utils import pretty_section, configure_logger
 
 # Static templates
 TEMPLATES = {
@@ -19,140 +18,111 @@ TEMPLATES = {
     'error': "Sorry, an error occurred: {error}"
 }
 
-def handle_message(user_input: str, order_info: dict) -> bool:
-    """
-    Simple intent routing by keyword matching.
+@dataclass
+class AgentResult:
+    tool_name: str
+    policy_passed: bool
+    api_status: str
+    tool_output: dict
+    final_response: str
 
-    Args:
-        user_input (str): The user's input message.
-        order_info (dict): The order information containing order_id, order_date, and user_id.
+def route_message(user_input: str, order_info: dict) -> AgentResult:
     
-    Returns:
-        bool: True if the message was handled successfully, False otherwise.
-    
-    """
-
     logger.info("Baseline agent started")
-
-    banner = (
-        "====================================================================\n"
-        "🕹 Baseline Rule-Based Chatbot                                      \n"
-        "====================================================================\n\n"
-        "🎯 I can track or cancel your order.\n"
-    )
-    print(banner)
-
-    print("====================================================================")
-    print("💬 Using input data:")
-    print("====================================================================\n")
-    print(f"Prompt: {user_input}")
-    print(f"Order info: {json.dumps(order_info, indent=2)}")
-
-    # Log input details
     logger.info("User input: %s", user_input)
     logger.info("Order info: %s", order_info)
 
     text = user_input.lower()
-    order_id = order_info.get('order_id')
-    order_date = order_info.get('order_date')
-    user_id = order_info.get('user_id')
+    order_id = order_info["order_id"]
+    order_date = order_info["order_date"]
+    user_id = order_info["user_id"]
 
+    if "track" in text or "status" in text:
+        resp = call_tracking(order_id)
+        status = resp.get("status", "error")
+        final = (
+            TEMPLATES["track"].format(order_id=order_id, status=resp.get("details", status))
+            if status == "ok"
+            else TEMPLATES["error"].format(error=resp.get("message", "Unknown"))
+        )
+        pretty_section("📲 Model requested tool call", "Tool name: track_order")
+        return AgentResult("track_order", True, status, resp, final)
+
+    if "cancel" in text:
+        if not can_cancel(order_date, user_id):
+            return AgentResult(
+                tool_name="cancel_order",
+                policy_passed=False,
+                api_status=None,
+                tool_output=None,
+                final_response=TEMPLATES["cancel_fail"].format(order_id=order_id),
+            )
+        resp = call_cancellation(order_id)
+        status = resp.get("status", "error")
+        final = (
+            TEMPLATES["cancel_success"].format(order_id=order_id)
+            if status == "ok"
+            else TEMPLATES["error"].format(error=resp.get("message", "Unknown"))
+        )
+        pretty_section("📲 Model requested tool call", "Tool name: cancel_order")
+        return AgentResult("cancel_order", True, status, resp, final)
+
+    # nothing matched
+    return AgentResult("none", False, None, None, "Sorry, I didn't understand that.")
+
+def call_tracking(order_id: str) -> dict:
     try:
-        if 'track' in text or 'status' in text:
-            tool_name = "track_order"
-            print("\n====================================================================")
-            print("📲 Model requested tool call:")
-            print("====================================================================")
-            print("Tool name:", tool_name)
-            try:
-                resp = OrderTrackingClient().track(order_id)
-                result = f"Order status: {resp}"
-                api_status = resp.get("status", "error")
-            except Exception as e:
-                result = f"Error retrieving status: {str(e)}"
-                api_status = "error"
-            if api_status == "error":
-                print(TEMPLATES['error'].format(error=resp['message']))
-            final_response = TEMPLATES['track'].format(order_id=order_id, status=resp.get('status'))
-        elif 'cancel' in text:
-            tool_name = "cancel_order"
-            print("\n====================================================================")
-            print("📲 Model requested tool call:")
-            print("====================================================================")
-            print("Tool name:", tool_name)
-            try:
-              if not can_cancel(order_date, user_id):
-                  policy_passed = "False"
-                  result = f"Order {order_id} cannot be canceled per policy."
-                  return TEMPLATES['cancel_fail'].format(order_id=order_id)
-              policy_passed = "True"
-              logger.info("Policy passed: %s", policy_passed)
-              resp = OrderCancellationClient().cancel(order_id)
-              result = f"Cancellation result: {json.dumps(resp, indent=2)}"
-              api_status = resp.get("status", "error")
-            except Exception as e:
-                result = f"Error processing cancellation: {str(e)}"
-            if api_status == "error":
-                print(TEMPLATES['error'].format(error=resp['message']))
-            final_response = TEMPLATES['cancel_success'].format(order_id=order_id)
-        else:
-            print("\nNo tool calls were triggered by the model.")
-            tool_name = "none"
-            logger.info("Tool used: %s", tool_name)
-            return False
-        logger.info("Tool used: %s", tool_name)
-        logger.info("API status: %s", api_status)
-        logger.info("Final response: %s", final_response)
+        return OrderTrackingClient().track(order_id)
+    except (ConnectionError, TimeoutError) as e:
+        logger.error("Tracking API error", exc_info=e)
+        return {"status": "error", "order_id": order_id, "message": "Tracking service unavailable"}
 
-        print("\n====================================================================")
-        print("🛠 Tool's output:")
-        print("====================================================================")
-        print(result)
-
-        print("\n====================================================================")
-        print("🤖 Model's response:")
-        print("====================================================================")
-        print(final_response)
-
-        return True
-    
-    except Exception as e:
-        return TEMPLATES['error'].format(error=str(e))
+def call_cancellation(order_id: str) -> dict:
+    try:
+        return OrderCancellationClient().cancel(order_id)
+    except (ConnectionError, TimeoutError) as e:
+        logger.error("Cancellation API error", exc_info=e)
+        return {"status": "error", "order_id": order_id, "message": "Cancellation service unavailable"}
 
 
 if __name__ == "__main__":
+    
+    # Check if the script is run with the correct number of arguments
     if len(sys.argv) != 4:
         print("Usage: python3 src/baseline.py '<user_input>' '<order_info_json>' '<log_path>'")
         sys.exit(1)
 
+    # Read command line arguments
     user_input = sys.argv[1]
     order_info = json.loads(sys.argv[2])
-    log_path = sys.argv[3]
+    log_path   = sys.argv[3]
 
-    # Configure the logger
-    log_dir  = os.path.dirname(log_path)
-
-    if log_dir and not os.path.exists(log_dir):
-        os.makedirs(log_dir, exist_ok=True)
-
-    if not os.path.exists(log_path):
-        open(log_path, "a").close()
-
-    logging.basicConfig(
-        filename=log_path,
-        level=logging.INFO,
-        filemode='w',
-        format="%(asctime)s %(levelname)-8s %(name)s: %(message)s"
-    )
+    # Configure logger
     logger = logging.getLogger(__name__)
+    configure_logger(log_path, level=logging.INFO)
+
+    # Print the banner
+    banner = (
+        "======================================================================\n"
+        "🕹 Baseline Rule-Based Chatbot                                        \n"
+        "======================================================================\n"
+        "🎯 I can track or cancel your order."
+    )
+    print(banner)
+
+    pretty_section("💬 Using input data:", f"Prompt: {user_input}\nOrder info: {json.dumps(order_info, indent=2)}")
 
     # Run baseline agent
-    if handle_message(user_input, order_info):
-        logger.info("Baseline agent finished successfully")
-    else:
-        logger.info("Baseline agent didn't finish successfully")
+    result = route_message(user_input, order_info)
 
-    print("\n====================================================================")
-    print("📃 More information in the log file:")
-    print("====================================================================")
-    print(log_path)
+    # Log the results
+    logger.info("Tool used: %s", result.tool_name)
+    logger.info("Policy passed: %s", result.policy_passed)
+    logger.info("API status: %s", result.api_status)
+    logger.info("Tool output: %s", result.tool_output)
+    logger.info("Final response: %s", result.final_response)
+
+    # Print some info for the user
+    pretty_section("🔧 Tool output", json.dumps(result.tool_output, indent=2))
+    pretty_section("🤖 Final response", result.final_response)
+    pretty_section("📜 Log file", f"Log path: {log_path}")

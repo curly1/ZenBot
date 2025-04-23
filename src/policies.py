@@ -5,6 +5,10 @@ Defines business rules for order cancellation, refunds, and tracking.
 Extendable to add new policies (e.g. loyalty overrides, blackout periods).
 """
 from datetime import datetime, timedelta
+import logging
+
+# Logger should be already configured
+logger = logging.getLogger(__name__)
 
 # Core policy parameters
 CANCELLATION_WINDOW_DAYS = 10
@@ -31,17 +35,17 @@ def can_cancel(order_date_str: str, user_id: str = None) -> bool:
     """
     # Window policy
     if not is_within_window(order_date_str, CANCELLATION_WINDOW_DAYS):
-        print("Order is outside the cancellation window.")
+        logger.info("Order is outside the cancellation window.")
         return False
     # Monthly quota
     if user_id:
         count = user_cancellation_count.get(user_id, 0)
         if count >= MAX_CANCELLATIONS_PER_USER_PER_MONTH:
-            print("User has exceeded monthly cancellation quota.")
+            logger.info("User has exceeded monthly cancellation quota.")
             return False
     # Blackout dates
     if order_date_str in BLACKOUT_DATES:
-        print("Order date is in a blackout period.")
+        logger.info("Order date is in a blackout period.")
         return False
     return True
 
