@@ -1,0 +1,6 @@
+example_id,user_input,order_info_json,correct_tool,correct_policy,correct_api_status
+1,Please track my order,"{""order_id"":""X1"",""order_date"":""2025-04-20"",""user_id"":""U1""}",track_order,True,ok
+2,Where is order Y2?,"{""order_id"":""Y2"",""order_date"":""2025-04-21"",""user_id"":""U2""}",track_order,True,ok
+3,Cancel order Z3,"{""order_id"":""Z3"",""order_date"":""2025-03-01"",""user_id"":""U3""}",cancel_order,False,ok
+4,Cancel my order,"{""order_id"":""A4"",""order_date"":""2025-04-19"",""user_id"":""U4""}",cancel_order,True,ok
+5,Please cancel B5,"{""order_id"":""B5"",""order_date"":""2025-04-18"",""user_id"":""U5""}",cancel_order,True,ok

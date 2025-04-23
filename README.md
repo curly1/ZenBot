@@ -127,6 +127,15 @@ We also provide a simple rule-based agent which serves as a baseline for the exp
 - Eligible and ineligible order cancellations
 - Successful and failed order tracking requests
 
+### How to run
+
+```bash
+python evaluation/evaluate_quantitative_metrics.py \
+  --agent {baseline,zenbot} \
+  --csv data/sample_data.csv \
+  --log-path logs/sample_data/baseline.log
+```
+
 ### Results
 
 PDF report: [link](docs/results.pdf)
