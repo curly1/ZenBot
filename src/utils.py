@@ -22,7 +22,7 @@ def configure_logger(log_path: str, level: int = logging.INFO):
         filename=log_path,
         filemode='w',
         level=level,
-        format="%(asctime)s | %(levelname)8s | %(filename)16s:%(lineno)4d | %(message)s"
+        format="%(asctime)s | %(levelname)8s | %(filename)36s:%(lineno)4d | %(message)s"
     )
 
 def validate_inputs(user_input: str, order_info: dict) -> bool:
