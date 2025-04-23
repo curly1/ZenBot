@@ -14,7 +14,7 @@ from dataclasses import dataclass
 import requests
 from sentiment import is_frustrated
 from policies import can_cancel
-from utils import pretty_section, configure_logger, validate_inputs
+from utils import pretty_section, configure_logger, validate_inputs, TEMPLATES
 from api_clients import OrderCancellationClient, OrderTrackingClient
 
 
@@ -89,14 +89,6 @@ tools = [
         }
     }
 ]
-
-# Static templates
-TEMPLATES = {
-    'cancel_success': "Your order {order_id} has been canceled successfully.",
-    'cancel_fail': "Order {order_id} cannot be canceled due to policy.",
-    'track': "The current status of order {order_id} is: {status}.",
-    'error': "Sorry, an error occurred: {error}"
-}
 
 @dataclass
 class AgentResult:
