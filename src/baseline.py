@@ -60,25 +60,40 @@ def handle_message(user_input: str, order_info: dict) -> bool:
     try:
         if 'track' in text or 'status' in text:
             tool_name = "track_order"
-            resp = OrderTrackingClient().track(order_id)
-            api_status = resp.get("status", "error")
+            print("\n====================================================================")
+            print("📲 Model requested tool call:")
+            print("====================================================================")
+            print("Tool name:", tool_name)
+            try:
+                resp = OrderTrackingClient().track(order_id)
+                result = f"Order status: {resp}"
+                api_status = resp.get("status", "error")
+            except Exception as e:
+                result = f"Error retrieving status: {str(e)}"
+                api_status = "error"
             if api_status == "error":
-                logger.error("API error: %s", resp.get("message"))
                 print(TEMPLATES['error'].format(error=resp['message']))
-                return False
             final_response = TEMPLATES['track'].format(order_id=order_id, status=resp.get('status'))
         elif 'cancel' in text:
             tool_name = "cancel_order"
-            if not can_cancel(order_date, user_id):
-                policy_passed = "False"
-                return TEMPLATES['cancel_fail'].format(order_id=order_id)
-            policy_passed = "True"
-            logger.info("Policy passed: %s", policy_passed)
-            resp = OrderCancellationClient().cancel(order_id)
-            api_status = resp.get("status", "error")
+            print("\n====================================================================")
+            print("📲 Model requested tool call:")
+            print("====================================================================")
+            print("Tool name:", tool_name)
+            try:
+              if not can_cancel(order_date, user_id):
+                  policy_passed = "False"
+                  result = f"Order {order_id} cannot be canceled per policy."
+                  return TEMPLATES['cancel_fail'].format(order_id=order_id)
+              policy_passed = "True"
+              logger.info("Policy passed: %s", policy_passed)
+              resp = OrderCancellationClient().cancel(order_id)
+              result = f"Cancellation result: {json.dumps(resp, indent=2)}"
+              api_status = resp.get("status", "error")
+            except Exception as e:
+                result = f"Error processing cancellation: {str(e)}"
             if api_status == "error":
                 print(TEMPLATES['error'].format(error=resp['message']))
-                return False
             final_response = TEMPLATES['cancel_success'].format(order_id=order_id)
         else:
             print("\nNo tool calls were triggered by the model.")
@@ -88,6 +103,11 @@ def handle_message(user_input: str, order_info: dict) -> bool:
         logger.info("Tool used: %s", tool_name)
         logger.info("API status: %s", api_status)
         logger.info("Final response: %s", final_response)
+
+        print("\n====================================================================")
+        print("🛠 Tool's output:")
+        print("====================================================================")
+        print(result)
 
         print("\n====================================================================")
         print("🤖 Model's response:")

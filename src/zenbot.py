@@ -12,6 +12,7 @@ import json
 import requests
 from sentiment import is_frustrated
 from policies import can_cancel
+from utils import print_in_column
 from api_clients import OrderCancellationClient, OrderTrackingClient
 
 
@@ -215,9 +216,12 @@ def handle_message(user_input: str, order_info: dict, model_path: str) -> bool:
         arguments = json.loads(tool_call["function"]["arguments"])
 
         print("\n====================================================================")
-        print("📲 Model requested function call:")
+        print("📲 Model requested tool call:")
         print("====================================================================")
-        print(json.dumps(tool_call, indent=2))
+        print("Tool name:", tool_name)
+        print("Arguments:", json.dumps(arguments, indent=2))
+        print("Tool call ID:", tool_call["id"])
+        logger.info("Tool call ID: %s", tool_call["id"])
 
         # Perform the actual function call
         if tool_name == "track_order":
@@ -240,7 +244,7 @@ def handle_message(user_input: str, order_info: dict, model_path: str) -> bool:
                 else:
                     policy_passed = "True"
                     resp = OrderCancellationClient().cancel(order_id)
-                    result = f"Cancellation result: {resp}"
+                    result = f"Cancellation result: {json.dumps(resp, indent=2)}"
                     api_status = resp.get("status", "error")
                 logger.info("Policy passed: %s", policy_passed)
             except Exception as e:
@@ -298,7 +302,7 @@ def handle_message(user_input: str, order_info: dict, model_path: str) -> bool:
         print("\n====================================================================")
         print("🤖 Model's response:")
         print("====================================================================")
-        print(final_response)
+        print_in_column(final_response, width=68)
     else:
         print("Follow-up request failed:", response.status_code, response.text)
         return False
