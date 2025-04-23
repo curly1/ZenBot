@@ -40,7 +40,8 @@ def route_message(user_input: str, order_info: dict) -> AgentResult:
     Returns:
         AgentResult: The result of the tool call, including tool name, policy status, API status, and final response.
     """
-    
+
+    logger = logging.getLogger(__name__)
     logger.info("Baseline agent started")
     start = time.time()
 
@@ -57,7 +58,7 @@ def route_message(user_input: str, order_info: dict) -> AgentResult:
         resp = OrderTrackingClient().track(order_id)
         status = resp.get("status", "error")
         final = (
-            TEMPLATES["track"].format(order_id=order_id, status=resp.get("details", status))
+            TEMPLATES["track"].format(order_id=order_id, status=status)
             if status != "error"
             else TEMPLATES["error"].format(error=resp.get("message", "Unknown"))
         )

@@ -117,6 +117,7 @@ def route_message(user_input: str, order_info: dict) -> AgentResult:
         AgentResult: The result of the tool call, including tool name, policy status, API status, and final response.
     """
     
+    logger = logging.getLogger(__name__)
     logger.info("ZenBot started")
     start = time.time()
 
@@ -221,7 +222,7 @@ def route_message(user_input: str, order_info: dict) -> AgentResult:
         tool_output = OrderTrackingClient().track(args["order_id"])
         api_status = tool_output.get("status", "error")
         result_msg = (
-            TEMPLATES["track"].format(order_id=args["order_id"], status=tool_output.get("details", api_status))
+            TEMPLATES["track"].format(order_id=args["order_id"], status=api_status)
             if api_status != "error"
             else TEMPLATES["error"].format(error=tool_output.get("message", "Unknown"))
         )
