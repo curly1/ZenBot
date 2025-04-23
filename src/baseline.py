@@ -38,7 +38,7 @@ def route_message(user_input: str, order_info: dict) -> AgentResult:
     user_id = order_info["user_id"]
 
     if "track" in text or "status" in text:
-        resp = call_tracking(order_id)
+        resp = OrderTrackingClient().track(order_id)
         status = resp.get("status", "error")
         final = (
             TEMPLATES["track"].format(order_id=order_id, status=resp.get("details", status))
@@ -57,7 +57,7 @@ def route_message(user_input: str, order_info: dict) -> AgentResult:
                 tool_output=None,
                 final_response=TEMPLATES["cancel_fail"].format(order_id=order_id),
             )
-        resp = call_cancellation(order_id)
+        resp = OrderCancellationClient().cancel(order_id)
         status = resp.get("status", "error")
         final = (
             TEMPLATES["cancel_success"].format(order_id=order_id)
@@ -69,21 +69,6 @@ def route_message(user_input: str, order_info: dict) -> AgentResult:
 
     # nothing matched
     return AgentResult("none", False, None, None, "Sorry, I didn't understand that.")
-
-def call_tracking(order_id: str) -> dict:
-    try:
-        return OrderTrackingClient().track(order_id)
-    except (ConnectionError, TimeoutError) as e:
-        logger.error("Tracking API error", exc_info=e)
-        return {"status": "error", "order_id": order_id, "message": "Tracking service unavailable"}
-
-def call_cancellation(order_id: str) -> dict:
-    try:
-        return OrderCancellationClient().cancel(order_id)
-    except (ConnectionError, TimeoutError) as e:
-        logger.error("Cancellation API error", exc_info=e)
-        return {"status": "error", "order_id": order_id, "message": "Cancellation service unavailable"}
-
 
 if __name__ == "__main__":
     
@@ -116,7 +101,7 @@ if __name__ == "__main__":
     result = route_message(user_input, order_info)
 
     # Log the results
-    logger.info("Tool used: %s", result.tool_name)
+    logger.info("Tool requested: %s", result.tool_name)
     logger.info("Policy passed: %s", result.policy_passed)
     logger.info("API status: %s", result.api_status)
     logger.info("Tool output: %s", result.tool_output)
