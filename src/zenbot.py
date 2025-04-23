@@ -9,6 +9,7 @@ import sys
 import os
 import json
 import logging
+import time
 from dataclasses import dataclass
 import requests
 from sentiment import is_frustrated
@@ -104,7 +105,7 @@ class AgentResult:
     api_status: str
     tool_output: dict
     final_response: str
-
+    response_time: float
 
 def route_message(user_input: str, order_info: dict) -> AgentResult:
     """
@@ -115,7 +116,9 @@ def route_message(user_input: str, order_info: dict) -> AgentResult:
     Returns:
         AgentResult: The result of the tool call, including tool name, policy status, API status, and final response.
     """
+    
     logger.info("ZenBot started")
+    start = time.time()
 
     logger.info("User input: %s", user_input)
     logger.info("Order info: %s", order_info)
@@ -128,7 +131,7 @@ def route_message(user_input: str, order_info: dict) -> AgentResult:
         # remains as a placeholder for future use.
         escalation = "I'm sorry, you seem frustrated. I'm transferring you to a live agent now."
         pretty_section("⚠️ Escalation", escalation)
-        return AgentResult("escalate", False, None, None, escalation)
+        return AgentResult("escalate", False, None, None, escalation, time.time() - start)
 
     messages = [
         {
@@ -191,7 +194,7 @@ def route_message(user_input: str, order_info: dict) -> AgentResult:
     except Exception as e:
         logger.error("LLM unreachable: %s", e)
         err = "Sorry, I’m having trouble reaching the language LLM server right now. Please try again later."
-        return AgentResult("llm_error", False, None, None, err)    
+        return AgentResult("llm_error", False, None, None, err, time.time() - start)    
 
     reply = resp.json()["choices"][0]["message"]
     calls = reply.get("tool_calls", [])
@@ -199,7 +202,7 @@ def route_message(user_input: str, order_info: dict) -> AgentResult:
     # Handle tool call
     if not calls:
         pretty_section("📲 Model requested tool call", "Tool name: none")
-        return AgentResult("none", False, None, None, "No tool call triggered by the model.")
+        return AgentResult("none", False, None, None, "No tool call triggered by the model.", time.time() - start)
     
     call = calls[0]
     tool_name = call["function"]["name"]
@@ -235,7 +238,7 @@ def route_message(user_input: str, order_info: dict) -> AgentResult:
                 else TEMPLATES["error"].format(error=tool_output.get("message", "Unknown"))
             )
     else:
-        return AgentResult(tool_name, False, None, None, f"Unknown tool: {tool_name}")
+        return AgentResult(tool_name, False, None, None, f"Unknown tool: {tool_name}", time.time() - start)
 
     # Send the tool message back to the model
     messages.append({
@@ -271,7 +274,7 @@ def route_message(user_input: str, order_info: dict) -> AgentResult:
         logger.error("Follow-up request failed: %s", e)
         final_response = f"Error generating final response: {e}"
 
-    return AgentResult(tool_name, policy_passed, api_status, tool_output, final_response)
+    return AgentResult(tool_name, policy_passed, api_status, tool_output, final_response, time.time() - start)
 
 if __name__ == "__main__":
     if len(sys.argv) != 4:
@@ -308,7 +311,9 @@ if __name__ == "__main__":
     )
 
     # Run ZenBot
+    start = time.time()
     result = route_message(user_input, order_info)
+    end = time.time()
 
     # Print some info for the user
     pretty_section("🔧 Tool output", json.dumps(result.tool_output, indent=2))
@@ -321,5 +326,4 @@ if __name__ == "__main__":
     logger.info("API status: %s", result.api_status)
     logger.info("Tool output: %s", result.tool_output)
     logger.info("Final response: %s", result.final_response)
-    logger.info("ZenBot finished")
-
+    logger.info("ZenBot finished, response time: %s", f"{result.response_time:.2f} seconds.")

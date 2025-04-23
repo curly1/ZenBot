@@ -4,7 +4,11 @@ baseline.py
 A simple rule-based chatbot for order cancellation and tracking.
 """
 
-import sys, os, json, logging
+import sys
+import os
+import json
+import logging
+import time
 from dataclasses import dataclass
 from api_clients import OrderCancellationClient, OrderTrackingClient
 from policies import can_cancel
@@ -25,6 +29,7 @@ class AgentResult:
     api_status: str
     tool_output: dict
     final_response: str
+    response_time: float
 
 def route_message(user_input: str, order_info: dict) -> AgentResult:
     """
@@ -37,6 +42,8 @@ def route_message(user_input: str, order_info: dict) -> AgentResult:
     """
     
     logger.info("Baseline agent started")
+    start = time.time()
+
     logger.info("User input: %s", user_input)
     logger.info("Order info: %s", order_info)
 
@@ -54,7 +61,7 @@ def route_message(user_input: str, order_info: dict) -> AgentResult:
             if status != "error"
             else TEMPLATES["error"].format(error=resp.get("message", "Unknown"))
         )
-        return AgentResult("track_order", True, status, resp, final)
+        return AgentResult("track_order", True, status, resp, final, time.time() - start)
 
     if "cancel" in text:
         pretty_section("📲 Model requested tool call", "Tool name: cancel_order")
@@ -65,6 +72,7 @@ def route_message(user_input: str, order_info: dict) -> AgentResult:
                 api_status=None,
                 tool_output=None,
                 final_response=TEMPLATES["cancel_fail"].format(order_id=order_id),
+                response_time=time.time() - start
             )
         resp = OrderCancellationClient().cancel(order_id)
         status = resp.get("status", "error")
@@ -73,10 +81,10 @@ def route_message(user_input: str, order_info: dict) -> AgentResult:
             if status == "ok"
             else TEMPLATES["error"].format(error=resp.get("message", "Unknown"))
         )
-        return AgentResult("cancel_order", True, status, resp, final)
+        return AgentResult("cancel_order", True, status, resp, final, time.time() - start)
 
     # nothing matched
-    return AgentResult("none", False, None, None, "Sorry, I didn't understand that.")
+    return AgentResult("none", False, None, None, "Sorry, I didn't understand that.", time.time() - start)
 
 if __name__ == "__main__":
     
@@ -126,4 +134,4 @@ if __name__ == "__main__":
     logger.info("API status: %s", result.api_status)
     logger.info("Tool output: %s", result.tool_output)
     logger.info("Final response: %s", result.final_response)
-    logger.info("Baseline agent finished")
+    logger.info("ZenBaseline agent finished, response time: %s", f"{result.response_time:.2f} seconds.")
