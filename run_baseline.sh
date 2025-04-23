@@ -19,5 +19,6 @@ LOG_PATH="$3"
 
 python3 src/baseline.py "$MESSAGE" "$ORDER_JSON" "$LOG_PATH" || {
   echo "Error: Baseline agent execution failed."
+  echo "Please check the log file at $LOG_PATH for more details."
   exit 1
 }

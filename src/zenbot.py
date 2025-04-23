@@ -5,14 +5,15 @@ A simple chatbot for order cancellation and tracking using a locally running LLM
 with sentiment-awareness.
 """
 
-import logging
 import sys
 import os
 import json
+import logging
+from dataclasses import dataclass
 import requests
 from sentiment import is_frustrated
 from policies import can_cancel
-from utils import print_in_column
+from utils import pretty_section, configure_logger, validate_inputs
 from api_clients import OrderCancellationClient, OrderTrackingClient
 
 
@@ -88,59 +89,46 @@ tools = [
     }
 ]
 
-def handle_message(user_input: str, order_info: dict, model_path: str) -> bool:
-    """
-    Processes the user's message, decides which tool to use (track or cancel),
-    enforces policy for cancellations, calls the appropriate API client,
-    and then uses the specified LLM endpoint to craft a final reply.
+# Static templates
+TEMPLATES = {
+    'cancel_success': "Your order {order_id} has been canceled successfully.",
+    'cancel_fail': "Order {order_id} cannot be canceled due to policy.",
+    'track': "The current status of order {order_id} is: {status}.",
+    'error': "Sorry, an error occurred: {error}"
+}
 
+@dataclass
+class AgentResult:
+    tool_name: str
+    policy_passed: bool
+    api_status: str
+    tool_output: dict
+    final_response: str
+
+
+def route_message(user_input: str, order_info: dict) -> AgentResult:
+    """
+    Routes the user message to the appropriate tool based on the user's intent.
     Args:
-        user_input (str): The user's input message.
-        order_info (dict): The order information containing order_id, order_date, and user_id.
-        model_path (str): Path to the model to be used for generating responses.
-    
+        user_input (str): The user's message.
+        order_info (dict): The order information.
     Returns:
-        bool: True if the message was fully handled successfully, False otherwise.
-
+        AgentResult: The result of the tool call, including tool name, policy status, API status, and final response.
     """
-
     logger.info("ZenBot started")
 
-    banner = (
-        "====================================================================\n"
-        "⚡ ZenBot is live!                                                   \n"
-        "====================================================================\n\n"
-        "👋 Hey there! I’m ZenBot. Not a human, but here to help!\n"
-        "🧘 I don’t get angry, just keep it bot-positive.\n"
-        "🎯 I can track or cancel your order.\n"
-    )
-    print(banner)
-
-    print("====================================================================")
-    print("💬 Using input data:")
-    print("====================================================================\n")
-    print(f"Prompt: {user_input}")
-    print(f"Order info: {json.dumps(order_info, indent=2)}")
-    
-    # Log input details
     logger.info("User input: %s", user_input)
     logger.info("Order info: %s", order_info)
-    logger.info("Model path: %s", model_path)
 
     # Check sentiment before doing anything else
-    # TODO - improve sentiment analysis model
-    # the threshold is set to 10 here because all cancellation requests
-    # are flagged as negative with lower values... 
-    # is_frustrated is left here as a placeholder
-    
     if is_frustrated(user_input, threshold=10.0):
-        # TODO - call a real escalation API
-        escalation_msg = (
-          "I'm sorry, you seem frustrated. "
-          "I'm transferring you to a live agent now."
-        )
-        print(f"{escalation_msg}")
-        return False
+        # TODO - Improve the sentiment analysis model.
+        # The threshold is currently set to 10 because lower values incorrectly 
+        # flag all cancellation requests as negative. The 'is_frustrated' flag 
+        # remains as a placeholder for future use.
+        escalation = "I'm sorry, you seem frustrated. I'm transferring you to a live agent now."
+        pretty_section("⚠️ Escalation", escalation)
+        return AgentResult("escalate", False, None, None, escalation)
 
     messages = [
         {
@@ -191,86 +179,68 @@ def handle_message(user_input: str, order_info: dict, model_path: str) -> bool:
     ]
 
     data = {
-        "model": model_path,
         "messages": messages,
         "tools": tools,
         "temperature": 0.15
     }
 
-    # Send initial request to model, expecting it to call the function
+    # Send initial request to model
     try:
-        response = requests.post(url, headers=headers, data=json.dumps(data))
-    except requests.exceptions.RequestException as e:
-        logger.error("LLM endpoint unreachable: %s", e)
-        logger.debug("Full exception details:", exc_info=True)
-        print("Sorry, I’m having trouble reaching the language LLM server right now. "
-              "Please try again in a moment.")
-        return False
+        resp = requests.post(url, headers=headers, json=data)
+        resp.raise_for_status()
+    except Exception as e:
+        logger.error("LLM unreachable: %s", e)
+        err = "Sorry, I’m having trouble reaching the language LLM server right now. Please try again later."
+        return AgentResult("llm_error", False, None, None, err)    
 
-    reply = response.json()["choices"][0]["message"]
+    reply = resp.json()["choices"][0]["message"]
+    calls = reply.get("tool_calls", [])
 
-    tool_calls = reply.get("tool_calls", [])
-    if tool_calls:
-        tool_call = tool_calls[0]
-        tool_name = tool_call["function"]["name"]
-        arguments = json.loads(tool_call["function"]["arguments"])
+    # Handle tool call
+    if not calls:
+        pretty_section("📲 Model requested tool call", "Tool name: none")
+        return AgentResult("none", False, None, None, "No tool call triggered by the model.")
+    
+    call = calls[0]
+    tool_name = call["function"]["name"]
+    args = json.loads(call["function"]["arguments"])
+    pretty_section("📲 Model requested tool call", 
+                   f"Tool name: {tool_name}\nArguments: {json.dumps(args, indent=2)}")
 
-        print("\n====================================================================")
-        print("📲 Model requested tool call:")
-        print("====================================================================")
-        print("Tool name:", tool_name)
-        print("Arguments:", json.dumps(arguments, indent=2))
-        print("Tool call ID:", tool_call["id"])
-        logger.info("Tool call ID: %s", tool_call["id"])
+    # Execute tool logic
+    policy_passed = True
+    api_status = None
+    tool_output = None
+    result_msg = ""
 
-        # Perform the actual function call
-        if tool_name == "track_order":
-            try:
-                order_id = arguments["order_id"]
-                resp = OrderTrackingClient().track(order_id)
-                result = f"Order status: {resp}"
-                api_status = resp.get("status", "error")
-            except Exception as e:
-                result = f"Error retrieving status: {str(e)}"
-                api_status = "error"
-        elif tool_name == "cancel_order":
-            try:
-                order_id = arguments["order_id"]
-                order_date = arguments["order_date"]
-                user_id = arguments["user_id"]
-                if not can_cancel(order_date, user_id):
-                    policy_passed = "False"
-                    result = f"Order {order_id} cannot be canceled per policy."
-                else:
-                    policy_passed = "True"
-                    resp = OrderCancellationClient().cancel(order_id)
-                    result = f"Cancellation result: {json.dumps(resp, indent=2)}"
-                    api_status = resp.get("status", "error")
-                logger.info("Policy passed: %s", policy_passed)
-            except Exception as e:
-                result = f"Error processing cancellation: {str(e)}"
+     # Perform the actual function call
+    if tool_name == "track_order":
+        tool_output = OrderTrackingClient().track(args["order_id"])
+        api_status = tool_output.get("status", "error")
+        result_msg = (
+            TEMPLATES["track"].format(order_id=args["order_id"], status=tool_output.get("details", api_status))
+            if api_status != "error"
+            else TEMPLATES["error"].format(error=tool_output.get("message", "Unknown"))
+        )
+    elif tool_name == "cancel_order":
+        if not can_cancel(args["order_date"], args["user_id"]):
+            policy_passed = False
+            result_msg = TEMPLATES["cancel_fail"].format(order_id=args["order_id"])
         else:
-            print(f"Unknown function called: {tool_name}")
-            return False
-        logger.info("Tool used: %s", tool_name)
-        logger.info("API status: %s", api_status)
-
+            tool_output = OrderCancellationClient().cancel(args["order_id"])
+            api_status = tool_output.get("status", "error")
+            result_msg = (
+                TEMPLATES["cancel_success"].format(order_id=args["order_id"])
+                if api_status == "ok"
+                else TEMPLATES["error"].format(error=tool_output.get("message", "Unknown"))
+            )
     else:
-        print("\nNo tool calls were triggered by the model.")
-        tool_name = "none"
-        logger.info("Tool used: %s", tool_name)
-        return False
+        return AgentResult(tool_name, False, None, None, f"Unknown tool: {tool_name}")
 
-
-    # Format the function response and send it back to the model
-    print("\n====================================================================")
-    print("🛠 Tool's output:")
-    print("====================================================================")
-    print(result)
-
+    # Send the tool message back to the model
     messages.append({
         "role": "assistant",
-        "content": f"{tool_name} tool response: {result}"
+        "content": f"{tool_name} tool response: {result_msg}"
     })
 
     # Add the instructions for the model to generate a natural language response
@@ -289,66 +259,67 @@ def handle_message(user_input: str, order_info: dict, model_path: str) -> bool:
 
     # New request with updated conversation
     followup_data = {
-        "model": model_path,
         "messages": messages,
         "temperature": 0.5
     }
 
-    # Send follow-up request to model for final response
-    response = requests.post(url, headers=headers, data=json.dumps(followup_data))
+    try:
+        resp_followup = requests.post(url, headers=headers, data=json.dumps(followup_data))
+        resp_followup.raise_for_status()
+        final_response = resp_followup.json()["choices"][0]["message"]["content"]
+    except Exception as e:
+        logger.error("Follow-up request failed: %s", e)
+        final_response = f"Error generating final response: {e}"
 
-    if response.status_code == 200:
-        final_response = response.json()["choices"][0]["message"]['content']
-        print("\n====================================================================")
-        print("🤖 Model's response:")
-        print("====================================================================")
-        print_in_column(final_response, width=68)
-    else:
-        print("Follow-up request failed:", response.status_code, response.text)
-        return False
-    
-    # Log the final response
-    logger.info("Final response: %s", final_response)
-    
-    return True
-
+    return AgentResult(tool_name, policy_passed, api_status, tool_output, final_response)
 
 if __name__ == "__main__":
-    if len(sys.argv) != 5:
-        print("Usage: python3 src/zenbot.py '<user_input>' '<order_info_json>' '<model_path>' '<log_path>'")
+    if len(sys.argv) != 4:
+        print("Usage: python3 src/zenbot.py '<user_input>' '<order_info_json>' '<log_path>'")
         sys.exit(1)
 
     user_input = sys.argv[1]
     order_info = json.loads(sys.argv[2])
-    model_path = sys.argv[3]
-    log_path = sys.argv[4]
+    log_path = sys.argv[3]
 
-    # Configure the logger
-    log_dir  = os.path.dirname(log_path)
-
-    if log_dir and not os.path.exists(log_dir):
-        os.makedirs(log_dir, exist_ok=True)
-
-    if not os.path.exists(log_path):
-        open(log_path, "a").close()
-
-    logging.basicConfig(
-        filename=log_path,
-        level=logging.INFO,
-        filemode='w',
-        format="%(asctime)s %(levelname)-8s %(name)s: %(message)s"
-    )
+    # Configure logger
     logger = logging.getLogger(__name__)
+    configure_logger(log_path, level=logging.INFO)
+
+    # Validate inputs
+    if not validate_inputs(user_input, order_info):
+        print("Invalid input data. Please check your inputs.")
+        sys.exit(1)
+
+    banner = (
+        "======================================================================\n"
+        "⚡ ZenBot is live!                                                     \n"
+        "======================================================================\n"
+        "👋 Hey there! I’m ZenBot. Not a human, but here to help!\n"
+        "🧘 I don’t get angry, just keep it bot-positive.\n"
+        "🎯 I can track or cancel your order."
+    )
+    print(banner)
+
+    # Input details
+    pretty_section(
+        "💬 Using input data:",
+        f"Prompt: {user_input}\nOrder info: {json.dumps(order_info, indent=2)}"
+    )
 
     # Run ZenBot
-    if handle_message(user_input, order_info, model_path):
-        logger.info("ZenBot finished successfully")
-    else:
-        logger.info("ZenBot didn't finish successfully")
+    result = route_message(user_input, order_info)
 
-    print("\n====================================================================")
-    print("📃 More information in the log file:")
-    print("====================================================================")
-    print(log_path)
+    # Print some info for the user
+    pretty_section("🔧 Tool output", json.dumps(result.tool_output, indent=2))
+    pretty_section("🤖 Final response", result.final_response, wrap=True)
+    pretty_section("📜 Log file", f"Log path: {log_path}")
 
-    
+    # Log the results    
+    logger.info("Tool requested: %s", result.tool_name)
+    logger.info("Policy passed: %s", result.policy_passed)
+    logger.info("API status: %s", result.api_status)
+    logger.info("Tool output: %s", result.tool_output)
+    logger.info("Final response: %s", result.final_response)
+    logger.info("ZenBot finished")
+

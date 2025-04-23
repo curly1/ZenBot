@@ -8,7 +8,7 @@ import sys, os, json, logging
 from dataclasses import dataclass
 from api_clients import OrderCancellationClient, OrderTrackingClient
 from policies import can_cancel
-from utils import pretty_section, configure_logger
+from utils import pretty_section, configure_logger, validate_inputs
 
 # Static templates
 TEMPLATES = {
@@ -27,6 +27,14 @@ class AgentResult:
     final_response: str
 
 def route_message(user_input: str, order_info: dict) -> AgentResult:
+    """
+    Routes the user input to the appropriate tool based on the message content.
+    Args:
+        user_input (str): The user's input message.
+        order_info (dict): Information about the order, including order_id, order_date, and user_id.
+    Returns:
+        AgentResult: The result of the tool call, including tool name, policy status, API status, and final response.
+    """
     
     logger.info("Baseline agent started")
     logger.info("User input: %s", user_input)
@@ -38,6 +46,7 @@ def route_message(user_input: str, order_info: dict) -> AgentResult:
     user_id = order_info["user_id"]
 
     if "track" in text or "status" in text:
+        pretty_section("📲 Model requested tool call", "Tool name: track_order")
         resp = OrderTrackingClient().track(order_id)
         status = resp.get("status", "error")
         final = (
@@ -45,10 +54,10 @@ def route_message(user_input: str, order_info: dict) -> AgentResult:
             if status != "error"
             else TEMPLATES["error"].format(error=resp.get("message", "Unknown"))
         )
-        pretty_section("📲 Model requested tool call", "Tool name: track_order")
         return AgentResult("track_order", True, status, resp, final)
 
     if "cancel" in text:
+        pretty_section("📲 Model requested tool call", "Tool name: cancel_order")
         if not can_cancel(order_date, user_id):
             return AgentResult(
                 tool_name="cancel_order",
@@ -64,7 +73,6 @@ def route_message(user_input: str, order_info: dict) -> AgentResult:
             if status == "ok"
             else TEMPLATES["error"].format(error=resp.get("message", "Unknown"))
         )
-        pretty_section("📲 Model requested tool call", "Tool name: cancel_order")
         return AgentResult("cancel_order", True, status, resp, final)
 
     # nothing matched
@@ -86,6 +94,11 @@ if __name__ == "__main__":
     logger = logging.getLogger(__name__)
     configure_logger(log_path, level=logging.INFO)
 
+    # Validate inputs
+    if not validate_inputs(user_input, order_info):
+        print("Invalid input data. Please check your inputs.")
+        sys.exit(1)
+
     # Print the banner
     banner = (
         "======================================================================\n"
@@ -95,10 +108,17 @@ if __name__ == "__main__":
     )
     print(banner)
 
-    pretty_section("💬 Using input data:", f"Prompt: {user_input}\nOrder info: {json.dumps(order_info, indent=2)}")
+    # Input details
+    pretty_section("💬 Using input data:", 
+                   f"Prompt: {user_input}\nOrder info: {json.dumps(order_info, indent=2)}")
 
     # Run baseline agent
     result = route_message(user_input, order_info)
+
+    # Print some info for the user
+    pretty_section("🔧 Tool output", json.dumps(result.tool_output, indent=2))
+    pretty_section("🤖 Final response", result.final_response)
+    pretty_section("📜 Log file", f"Log path: {log_path}")
 
     # Log the results
     logger.info("Tool requested: %s", result.tool_name)
@@ -106,8 +126,4 @@ if __name__ == "__main__":
     logger.info("API status: %s", result.api_status)
     logger.info("Tool output: %s", result.tool_output)
     logger.info("Final response: %s", result.final_response)
-
-    # Print some info for the user
-    pretty_section("🔧 Tool output", json.dumps(result.tool_output, indent=2))
-    pretty_section("🤖 Final response", result.final_response)
-    pretty_section("📜 Log file", f"Log path: {log_path}")
+    logger.info("Baseline agent finished")
