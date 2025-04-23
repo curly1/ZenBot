@@ -41,8 +41,15 @@ def build_judge_prompt(user_input: str, response: str) -> dict:
         "content": (
             "You are an expert judge evaluating chatbot responses. "
             "Rate the following response on three criteria: naturalness, coherence, and helpfulness. "
+            "A helpful response is in linke with the user's intent. "
+            "Examples of unhelpful responses:"
+            "- Sorry, I’m having trouble reaching the language LLM server right now. Please try again later."
+            "- Sorry, I didn't understand that."
+            "- Sorry, an error occurred."
+            "- Error generating final response."
+            "- Unknown tool."
             "Give each a score from 1 to 5 and a one-sentence justification for each. "
-            "Format your output as valid JSON with keys 'naturalness', 'coherence', 'helpfulness', each mapping to an object with 'score' and 'reason'."
+            "Format your output as valid JSON with keys 'naturalness', 'coherence', 'helpfulness', each mapping to an object with 'score' and 'reason'. "
         )
     }
     user = {
@@ -76,6 +83,7 @@ def main():
     natural_scores = []
     coherence_scores = []
     helpful_scores = []
+    binary_scores = []
 
     # Read examples
     with open(args.csv, newline='', encoding='utf-8') as csvfile:
@@ -129,6 +137,16 @@ def main():
                 "Example %s %s: score=%s, reason=%s",
                 example_id, key, score, reason
             )
+        # Compute binary pass/fail: average score >= 4
+        avg_score = sum((metrics.get('naturalness',{}).get('score',0),
+                         metrics.get('coherence',{}).get('score',0),
+                         metrics.get('helpfulness',{}).get('score',0))) / 3
+        binary = 1 if avg_score >= 4 else 0
+        binary_scores.append(binary)
+        logger.info(
+            "Example %s binary_pass: %d (avg=%.2f)",
+            example_id, binary, avg_score
+        )
 
     # Compute averages
     def avg(lst): return statistics.mean(lst) if lst else 0.0
@@ -138,8 +156,10 @@ def main():
         f"Evaluated {total} examples with agent: {args.agent}\n\n"
         f"Naturalness (1-5 avg): {avg(natural_scores):.2f}\n"
         f"Coherence   (1-5 avg): {avg(coherence_scores):.2f}\n"
-        f"Helpfulness (1-5 avg): {avg(helpful_scores):.2f}"
+        f"Helpfulness (1-5 avg): {avg(helpful_scores):.2f}\n"
+        f"Response Quality Pass Rate (0-1 avg): {avg(binary_scores):.2f}"
     )
+
     logger.info(summary)
     pretty_section("📊 Evaluation summary", summary)
     pretty_section("📜 Log file", f"Log path: {args.log_path}")
