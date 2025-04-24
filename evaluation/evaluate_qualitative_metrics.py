@@ -2,7 +2,7 @@
 Evaluation script for Baseline and ZenBot agents: qualitative response quality metrics.
 
 Usage:
-    python evaluate_qualitative_metrics.py \
+    python evaluation/evaluate_qualitative_metrics.py \
         --agent baseline \
         --csv-in data/sample_data.csv \
         --log-path logs/sample_data/baseline_qualitative.log \
@@ -57,6 +57,8 @@ def build_judge_prompt(user_input: str, response: str) -> dict:
             "Give each a score from 1 to 5 and a one-sentence justification for each. "
             "Format your output as valid JSON with keys 'naturalness', 'coherence', 'helpfulness', each mapping to an object with 'score' and 'reason'. "
             "Respond only with the raw JSON object, no extra text or markdown."
+            "If you’re near your LLM’s token limit, bump up max_tokens so it has room to finish the JSON."
+            "Make sure the JSON object starts with { and ends with }."
         )
     }
     user = {
@@ -96,7 +98,7 @@ def main():
 
     # Configure logger, log dir creation is handeled here
     logger = logging.getLogger(__name__)
-    configure_logger(args.log_path, level=logging.INFO)
+    configure_logger(args.log_path, level=logging.DEBUG)
 
     # Import agent and run_agent
     agent_mod = importlib.import_module(args.agent)
@@ -139,19 +141,56 @@ def main():
         response = result.final_response
         # Build judge prompt and call LLM
         payload = build_judge_prompt(user_input, response)
+        payload["max_tokens"] = 1024
         try:
             resp = requests.post(LLM_URL, headers=LLM_HEADERS, json=payload)
             resp.raise_for_status()
-            judge_output = resp.json().get('choices', [])[0].get('message', {}).get('content', '')
-            # Parse JSON from judge_output
-            m = re.search(r'\{.*\}', judge_output, re.DOTALL)
-            if not m:
-                raise ValueError(f"No JSON found in judge output: {judge_output!r}")
-            metrics = json.loads(m.group(0))
+            judge_text = resp.json().get('choices', [])[0].get('message', {}).get('content', '')
+
+            # there is still a missing closing brace for some LLM judge responses
+            # even after adjusting token limit and making the prompt more strict, 
+            # so patch it here with a brace balancer
+            opens = judge_text.count('{')
+            closes = judge_text.count('}')
+            if opens > closes:
+                judge_text += '}' * (opens - closes)           
+
+            # Try strict JSON parse
+            try:
+                metrics = json.loads(judge_text)
+            except json.JSONDecodeError:
+                # Fallback: extract the first JSON object non-greedily
+                m = re.search(r'\{.*?\}', judge_text, re.DOTALL)
+                if m:
+                    try:
+                        metrics = json.loads(m.group(0))
+                    except json.JSONDecodeError:
+                        metrics = None
+                else:
+                    metrics = None
+            
+            if logger.getEffectiveLevel() == logging.DEBUG:
+                debug_dir = os.path.join(os.path.dirname(args.log_path), f"{args.agent}_judge_debug")
+                os.makedirs(debug_dir, exist_ok=True)
+                # If still no valid metrics, dump raw text for debugging
+                if metrics is None:
+                    debug_file = os.path.join(debug_dir, f"{example_id}-fail.txt")
+                    with open(debug_file, "w", encoding="utf-8") as dbg:
+                        dbg.write(judge_text)
+                    logger.error(
+                        "Judge LLM parse failed for example %s; raw output saved to %s",
+                        example_id, debug_file
+                    )
+                    continue
+                else:
+                    debug_file = os.path.join(debug_dir, f"{example_id}-ok.txt")
+                    with open(debug_file, "w", encoding="utf-8") as dbg:
+                        dbg.write(judge_text)
+                
         except Exception as e:
             logger.error("Judge LLM failed for example %s: %s", example_id, e)
             continue
-
+        
         # Extract and log
         for key, scores_list in (('naturalness', natural_scores),
                                   ('coherence', coherence_scores),
