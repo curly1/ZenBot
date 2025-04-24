@@ -9,26 +9,31 @@
   📦 Your orders deserve order! ✅
 </p>
 
+This project implements a fully generative chatbot. It integrates with two API endpoints: `OrderCancellation` and `OrderTracking`. The chatbot adheres to specific company policies using an LLM for decision-making. The overall flow of ZenBot:
+
 <p align="center">
-  <a href="# 🎯 Features">Features</a> •
-  <a href="#installation">Installation</a> •
-  <a href="#usage">Usage</a> •
-  <a href="#license">License</a>
+  <img src="docs/flow_diagram.png" alt="Project Logo" width="600">
 </p>
 
 
-This project implements a fully generative chatbot using LangChain, integrating it with two API endpoints: `OrderCancellation` and `OrderTracking`. The chatbot adheres to specific company policies using an LLM for decision-making.
+## Table of Contents
 
-	1.	Intent Recognition → 2. Policy Check → 3. Tool Invocation (API call) → 4. Response Generation
+1. [🎯 Features](#-features)
+2. [🛠 Installation](#-installation)
+3. [🧠 Technical Choices](#-technical-choices)
+4. [🚀 How to Run](#-how-to-run)
+5. [📁 Project Structure](#-project-structure)
+6. [🧪 Experiment Design & Evaluation](#-experiment-design--evaluation)
+7. [✅ Testing](#-testing)
+8. [🤖 Future Enhancements](#-future-enhancements)
 
-# 🎯 Features
-- Order tracking and cancellation via mocked API
-- Company policy enforcement (return‑window, monthly quota, blackout‑date rules)
-- LLM-agent powered decisions using Mistral-7B-Instruct-v0.3 model
-- LLM inference with llama.cpp HTTP server
-- Sentiment analysis using Transformers
-- Step-by-step evaluation using a synthetic dataset and an LLM judge
-- Experiment tracking with Weave by W&B
+## 🎯 Features
+
+- **Conversational order support**: Track and cancel orders using a natural language interface.
+- **Policy-aware agent**: Enforces return windows, quotas, and blackout dates as per company rules.
+- **Local, fast LLM reasoning**: Makes tool-augmented decisions using the compact LLM model running locally.
+- **Sentiment detection**: Flags negative sentiment before routing to tool logic or escalation paths.
+- **End-to-end evaluation**: Computes quantitative and qualitative metrics for a synthetic evaluation datatest using an LLM judge.
 
 # 🛠 Installation
 
@@ -55,13 +60,29 @@ brew install llama.cpp
 
 # 🧠 Technical Choices
 
-**Framework**: LangChain, chosen for its intuitive workflow management, chaining capabilities, and strong integration with LLMs.
+**Local inference**  
+Lightweight C++ HTTP server (the `llama-server` wrapper from `llama.cpp`) for low-latency, single-node deployment.
 
-**LLM**: GPT-3.5-turbo via OpenAI's free API tier, chosen due to accessibility and strong performance.
+**LLM model**  
+`Mistral-7B-Instruct-v0.3` (quantized to `Q4_K_M` and stored in `GGUF` format) balances latency and response quality.
 
-**Mock APIs**: Implemented by checking a `ZENBOT_SIMULATE_API` environment variable. When enabled, returning randomized dummy responses for cancellation and tracking calls instead of making real HTTP requests.
+**API simulation**  
+Mock order tracking/cancellation via the `ZENBOT_SIMULATE_API` flag.
 
-**Evaluation**: Weave by Weights & Biases provides powerful, interactive experiment tracking and analysis.
+**Python wrappers**  
+Internal clients (`OrderTrackingClient`, etc.) encapsulate API logic for clarity and testability.
+
+**Sentiment gating**  
+A lightweight `Transformers` model runs `is_frustrated` checks pre-routing.
+
+**Logging & Observability**  
+Logs detail tool calls, LLM latency, decisions, and flow outcomes.
+
+**Robust evaluation**  
+Quantitative and qualitative metrics benchmark performance.
+
+**Test suite**  
+Pytest-based tests validate core behaviors and policy flow correctness.
 
 # 🚀 How to Run
 
@@ -183,7 +204,7 @@ This part is left as future work.
 
 ### How to run
 
-Evaluation for quantitative metrics:
+Evaluation of quantitative metrics:
 
 ```bash
 python evaluation/evaluate_quantitative_metrics.py \
@@ -193,7 +214,7 @@ python evaluation/evaluate_quantitative_metrics.py \
   --log-path logs/sample_data/{baseline,zenbot}/quantitative.log
 ```
 
-Evaluation for qualitative metrics:
+Evaluation of qualitative metrics:
 
 ```bash
 python evaluation/evaluate_qualitative_metrics.py \
@@ -201,6 +222,18 @@ python evaluation/evaluate_qualitative_metrics.py \
   --csv-in data/sample_data.csv \
   --csv-out evaluation/data/sample_data/{baseline,zenbot}/qualitative.csv \
   --log-path logs/sample_data/{baseline,zenbot}/qualitative.log
+```
+
+Analysis of quantitative metrics:
+```bash
+python evaluation/analyze_quantitative_metrics.py \
+  evaluation/data/eval_data/{baseline,zenbot}/quantitative.csv
+```
+
+Analysis of qualitative metrics:
+```bash
+python evaluation/analyze_qualitative_metrics.py \
+  evaluation/data/eval_data/{baseline,zenbot}/qualitative.csv
 ```
 
 # ✅ Testing
