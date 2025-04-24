@@ -94,7 +94,7 @@ This section shows how to run both agents for a single input prompt and input or
 ```bash
 input_prompt="track my order"
 order_info='{"order_id":"123","order_date":"2025-04-20","user_id":"user_1"}'
-log_filepath=logs/baseline.log
+log_filepath="logs/baseline.log"
 
 bash run_baseline.sh ${input_prompt} ${order_info} ${log_filepath}
 ```
@@ -105,10 +105,10 @@ bash run_baseline.sh ${input_prompt} ${order_info} ${log_filepath}
 
 2. Run `llama-server`:
 
-<cite>Please note: The port is hard-coded to 8080 in `src/zenbot.py`.</cite>
+> Please note: The port is hard-coded to 8080 in `src/zenbot.py`.
 
 ```bash
-model_path=pretrained/gguf_models/Mistral-7B-Instruct-v0.3.Q4_K_M.gguf
+model_path="pretrained/gguf_models/Mistral-7B-Instruct-v0.3.Q4_K_M.gguf"
 llama-server -m ${model_path} --port 8080 --jinja
 ```
 
@@ -117,112 +117,204 @@ llama-server -m ${model_path} --port 8080 --jinja
 ```bash
 input_prompt="track my order"
 order_info='{"order_id":"123","order_date":"2025-04-20","user_id":"user_1"}'
-log_filepath=logs/zenbot.log
+log_filepath="logs/zenbot.log"
 
 bash run_zenbot.sh ${input_prompt} ${order_info} ${log_filepath}
 ```
 
 # 📁 Project Structure
 
-### TODO - ADD PROJECT STRUCTURE AND DESCRIBE WHAT IS DONE IN THE FILES
+```
+.
+├── README.md
+├── data/                      ← Input CSVs for evaluation
+├── docs/                      ← Architecture diagrams & reports
+│   ├── evaluation_process.png
+│   ├── evaluation_report.pdf
+│   ├── flow_diagram.png
+│   └── logo.png
+├── evaluation/                ← Evaluation scripts & output data
+│   ├── analyze_qualitative_metrics.py
+│   ├── analyze_quantitative_metrics.py
+│   ├── data/                  ← Generated evaluation data
+│   ├── evaluate_qualitative_metrics.py
+│   └── evaluate_quantitative_metrics.py
+├── logs/                      ← Agent run logs (can be removed post-evaluation)
+├── pytest.ini                 ← Test configuration
+├── requirements.txt           ← Python dependencies
+├── run_baseline.sh            ← Convenience script: baseline agent
+├── run_zenbot.sh              ← Convenience script: ZenBot agent
+├── src/                       ← Core application code
+│   ├── api_clients.py         ← HTTP wrappers for order APIs
+│   ├── baseline.py            ← Rule-based reference agent
+│   ├── policies.py            ← Cancellation policy logic
+│   ├── sentiment.py           ← Frustration detection
+│   ├── utils.py               ← Logging, pretty-printing helpers
+│   └── zenbot.py              ← LLM-powered agent implementation
+└── tests/                     ← Unit tests
+```
 
-<cite>Please note: `data/`, `logs/` and `evaluation/data/` directories are included in the github repo for visibility.</cite>
+
+### Directory Overview
+
+- **`src/`**:  
+  All production code: baseline rule-based agent, LLM-driven ZenBot, plus shared utilities and policy logic.
+
+- **`evaluation/`**:  
+  Scripts for running and analyzing end-to-end tests. Includes both qualitative (LLM-judge) and quantitative metrics, along with generated data under `evaluation/data/`.
+
+- **`data/`**:  
+  CSV fixtures and sample inputs used by the evaluation scripts.
+
+- **`logs/`**:  
+  Output logs from batch and interactive runs of both agents.
+
+- **`docs/`**:  
+  Helpful diagrams, process flowcharts, and final evaluation reports.
+
+- **`tests/`**:  
+  Pytest-based unit tests ensuring the baseline agent behaves correctly; more tests can be added to cover ZenBot routes and utilities.
+
+
+> Please note: The `data/`, `logs/`, and `evaluation/data/` folders are committed here for demonstration purposes. You can safely delete them after you’ve generated or reviewed all evaluation outputs.
 
 # 🧪 Experiment Design & Evaluation
 
 ## Objective
-Measure how effectively ZenBot:
-- Correctly identifies user intent and selects the appropriate tool.
-- Enforces business policies for cancellations, returns and blackout periods.
-- Generates accurate, coherent responses via the LLM.
 
-## Baseline
+Evaluate ZenBot's ability to:
 
-We also provide a simple rule-based agent which serves as a baseline for the experiments. It is a simple Python CLI that handles two intents (order cancellation and order tracking) using straightforward keyword matching and static response templates (no LLM).
+- Accurately recognize user intents and select the appropriate tool.
+- Enforce business rules related to cancellations, returns, and blackout periods.
+- Generate coherent, contextually appropriate responses using the LLM.
+
+## Baseline Comparison
+
+A lightweight **rule-based agent** serves as the experimental baseline.  
+Implemented as a Python CLI, it supports two intents, order cancellation and order tracking, via:
+
+- Simple keyword matching
+- Static, hardcoded response templates
+- No use of an LLM
+
+This baseline provides a control point to assess the added value of LLM-driven reasoning, policy enforcement, and dynamic generation.
 
 ## Evaluation
 
-**Full evaluation report can be found [here](docs/evaluation_report.pdf), here is just an overview of evaluation.**
+**The complete evaluation report is available [here](docs/evaluation_report.pdf).**  
+Below is a high-level overview of the evaluation process and the metrics used.
 
-### Process
+### Process Overview
+
+ZenBot’s evaluation follows an iterative, data-driven approach. Each evaluation cycle involves metric analysis, followed by targeted improvements — either in the agent itself, the test data, or the evaluation methodology (e.g., refining the LLM judge).
 
 <p align="center">
   <img src="docs/evaluation_process.png" alt="Evaluation Process" width="200">
 </p>
 
-# TODO - review this section
-- Run an A/B test, i.e. run the 200‑request evaluation dataset through both agents.
-- Log tool selections, policy decisions, API responses (success vs. error) and latencies.
-- Call the LLM judge to score response quality for both agents. 
-- Track distributions for all metrics (histograms, percentiles). 
-- Perform statistical significance tests (z-test for binary metrics, t-test for continuous metrics).
-- Compare baseline vs. ZenBot on all metrics.
-- Visualize differences (tables, charts) between the two agents.
-- Examine failure cases to identify common misunderstandings or policy violations.
+### Steps
 
-### Synthetic dataset for evaluation
+- Run a **200-request A/B test**: Evaluate both the baseline and ZenBot on the same input dataset.
+- **Log internal decisions**: Capture tool selections, policy applications, API success/failure, and latency.
+- Use an **LLM-based judge** to assess response quality across both agents.
+- Store all results for metric-based comparison and trend tracking.
+- **Analyze and compare**: Examine quantitative and qualitative performance differences.
+- **Visualize insights**: Generate comparison tables and plots to spot patterns.
+- Investigate **failure cases** to uncover common errors, misinterpretations, or policy violations.
 
-A synthetic dataset was used for evaluation purposes. It was created using an LLM (ChatGPT-4o). The prompt was refined a few times to obtain an accurate and challenging evaluation dataset. The intent was to create:
+### Synthetic Dataset for Evaluation
 
-- **200** synthetic user requests:
-  - **50** **tracking** requests (with and without keyword `track`)
-  - **50** **cancellation** requests (**eligible and ineligible**, with and without keyword `cancel`)
-  - **50** **random** requests without keywords (`track`, `status` and `cancel`), **no intent**
-  - **50** **random** requests with keywords (`track`, `status` and `cancel`) but **no intent**
+To evaluate ZenBot in a controlled yet realistic setting, a **synthetic dataset of 200 user requests** using **ChatGPT-4o** was generated. The prompt was iteratively refined to ensure the data was both accurate and challenging.
 
-Other results for creating the dataset:
+#### Dataset Composition
 
-- Order dates are randomly selected within past 90 days.
-- Each record is labeled with: `example_id`, `user_input`, `order_info_json`, `correct_tool`, `correct_policy`, `correct_api_status`.
-- Order info contains the following information: `order_id`, `user_id`, `order_date`.
-- Correct tool for tracking requests is `track_order`, correct tool for cancellation requests is `cancel_order`, correct tool for no intent requests in `none`.
-- Correct policy for tracking requests is `True`. Correct policy for cancellation requests depend on the date of order.
-- Correct API status is set to `ok` for responses with intent, and to `None` for responses with no intent.
-- User input doesn't contain any sensitive information.
+- **50** tracking requests  
+  — Includes variations with and without the keyword `track`
+- **50** cancellation requests  
+  — Includes **eligible** and **ineligible** cases, with and without the keyword `cancel`
+- **50** random requests without intent  
+  — No occurrence of keywords like `track`, `status`, or `cancel`
+- **50** random requests with misleading keywords  
+  — Contains those keywords but expresses **no actionable intent**
 
-Checking programatically if the synthetic dataset actually adheres to the rules above would be a good future direction.
+#### Structure & Labels
+
+Each record in the dataset includes:
+- `example_id`: unique identifier
+- `user_input`: synthetic user utterance
+- `order_info_json`: contains `order_id`, `user_id`, `order_date` (random within past 90 days)
+- `correct_tool`: expected tool (`track_order`, `cancel_order`, or `none`)
+- `correct_policy`: boolean indicating if policy allows the action (e.g. cancellation eligibility)
+- `correct_api_status`: `ok` for valid intents, `None` for no-intent cases
+
+#### Assumptions & Constraints
+
+- Cancellation policy depends on the order date.
+- Tracking is always permitted (`correct_policy = True`).
+- Dataset is fully synthetic and contains **no sensitive information**.
+
+**Future improvement:** Add programmatic validation to ensure all records conform to the dataset specification above.
 
 ### Metrics
 
-| Metric | Type | Description |
-|--------|------|-----|
-| Intent Accuracy | Quantitative | % of requests where the correct tool was invoked |
-| Policy Adherence | Quantitative | % of chatbot responses correctly adhering to policies |
-| API Status Accuracy | Quantitative | % of API calls returning a successful status (no timeouts or errors) |
-| Latency | Quantitative | End‑to‑end response times |
-| Response naturalness | Qualitative | Subjective measure of the naturalness of the response (score 1-5) |
-| Response coherence | Qualitative | Subjective measure of the coherence of the response (score 1-5) |
-| Response helpfulness | Qualitative | Subjective measure of the helpfulness of the response  (score 1-5) |
-| Response quality | Qualitative | Objective, binary measure of response quality (i.e. meets a minimum quality threshold) |
+ZenBot is evaluated using a mix of **quantitative**, **qualitative**, and **classification** metrics. These help measure the correctness, performance, and user experience quality of the agent.
 
-`Policy Adherence` is only checked if the intent was recognized correctly and we actually called the tool.
+#### Core Metrics
 
-`API Status Accuracy` is only evaluated if it is not `None`. A normalized ground truth status is used ()
+| **Metric**               | **Type**        | **Description**                                                              |
+|--------------------------|------------------|-----------------------------------------------------------------------------|
+| **Intent Accuracy**      | Quantitative     | % of requests where the correct tool was selected                           |
+| **Policy Adherence**     | Quantitative     | % of responses that correctly enforce business rules                        |
+| **API Status Accuracy**  | Quantitative     | % of API calls that return a successful status (excluding `None` cases)     |
+| **Latency**              | Quantitative     | End-to-end response time (min, max, mean, median, stdev)                    |
+| **Response Naturalness** | Qualitative      | How natural the response sounds (1–5 scale)                                 |
+| **Response Coherence**   | Qualitative      | Logical consistency of the response (1–5 scale)                             |
+| **Response Helpfulness** | Qualitative      | Usefulness of the response to the user (1–5 scale)                          |
+| **Response Quality**     | Qualitative      | Binary judgment: meets or fails a minimum quality threshold                 |
 
-<cite>Please note: `API Status Accuracy` is not a very informative metric at this point because the API status is chosen at random in simulation mode. This metric is added for evaluation to showcase that it could be computed when real API calls are integrated.</cite>
+- `Policy Adherence` is only measured when the correct tool is selected.  
+- `API Status Accuracy` is evaluated only when a non-`None` status is expected.  
+- *Note:* In simulation mode, API statuses are randomized; this metric is included as a placeholder for when real integrations are available.
 
-For `Latency` the following statistics are computed across a dataset: `min`, `max`, `mean`, `median`, `stdev`.
+#### Latency Breakdown
 
-Additional metrics where classification errors are available (i.e. for policy and API):
-- `precision`
-- `recall`
-- `F1 score`
-- `FPR`
-- `FNR`
-- `ROC curve`
-- `AUC`
+Latency is reported using five statistics:
+- **Minimum**
+- **Maximum**
+- **Mean**
+- **Median**
+- **Standard deviation (stdev)**
 
-After manual response quality annotation, the following metrics could be computed to measure inter‑rater agreement for qualitative metrics:
+#### Classification Metrics
 
-- `Cohen's Kappa` for binary metrics (i.e. `Response quality`). This metric assesses the correlation between the outputs of the automated checks and the binary pass-fail scores from the human annotators, while accounting for any biases or skewness towards always passing or failing. It takes into account the possibility of chance agreement.
+Where binary outcomes are applicable (e.g., policy decisions, API responses), the following are computed:
 
-- `Kendall Tau` or `Spearman's Rho` for Likert-style data (responses from 1 to 5, i.e. `Response naturalness`, `Response coherence`, `Response helpfulness`). Both metrics measure rank correlation, i.e., how similarly two sets of rankings are ordered.
+- Precision  
+- Recall  
+- F1 Score  
+- False Positive Rate (FPR)  
+- False Negative Rate (FNR)  
+- ROC Curve  
+- Area Under the Curve (AUC)
 
-`Kendall's Tau` is preferred when the focus is on the relative order of responses (e.g., which responses are more natural or helpful), as it’s robust to small variations and treats all rank disagreements equally.
+#### Qualitative Score Analysis
 
-`Spearman's Rho` is better when the degree of disagreement matters, as it captures how far apart the rankings are, not just their order.
+For Likert-style metrics (1–5 scale), basic descriptive statistics are computed (e.g., mean, mode, histograms), along with correlation analysis between dimensions such as coherence and helpfulness.
 
-This part is left as future work.
+#### Inter-Rater Agreement (Planned)
+
+After manual annotation, the following metrics can validate consistency between human annotators or between human and automated systems:
+
+- **Cohen’s Kappa**:  
+  For binary scores (e.g., response quality). Adjusts for chance agreement and accounts for bias toward always passing or failing.
+
+- **Kendall’s Tau**:  
+  Measures the **relative ranking** consistency of Likert scores. Robust to small discrepancies.
+
+- **Spearman’s Rho**:  
+  Captures how far apart two sets of rankings are. Useful when **magnitude** of disagreement matters.
+
+> These agreement metrics are part of future work to strengthen the evaluation framework.
 
 ### How to run
 
@@ -265,29 +357,43 @@ Use pytest to run all tests from project root.
 pytest
 ```
 
-# 🤖 Future Enhancements
+# 🔮 Future Enhancements
 
-- [ ] Expand to additional APIs and functionalities
-- [ ] Add tool call confirmation for ambiguous user inputs
-- [ ] Use a version of Mistral-7B-Instruct-v0.3 model with 8-bit quantization (or full precision model, depending on latency/memory requirements and hardware used)
-- [ ] Switch to a newer (and larger) Mistral model ([Mistral-Small-3.1-24B-Instruct-2503](https://huggingface.co/bartowski/mistralai_Mistral-Small-3.1-24B-Instruct-2503-GGUF))
-- [ ] Upgrade to a different LLM (e.g. [Llama-xLAM-2-70b-fc-r](https://huggingface.co/DevQuasar/Salesforce.Llama-xLAM-2-70b-fc-r-GGUF) which is currently the best model on [Berkeley Function-Calling Leaderboard](https://gorilla.cs.berkeley.edu/leaderboard.html)) (at the time of writing, leaderboard updated on 2025-04-13)
-- [ ] Experiment with different hyper-parameters for the LLM model (e.g. temperature)
-- [ ] LLM fine-tuning
-- [ ] Use RAG
-- [ ] Use Weave for experiment tracking and evaluation
-- [ ] Meta evaluation, i.e. validate LLM judge reliability
-- [ ] Evaluate:
-  - [ ] safety (e.g. revealing sensitive information)
-  - [ ] hallucinations
-  - [ ] sentiment recognition
-- [ ] Improve the quality of synthetic data generation (make the data more diverse)
-- [ ] Use real data for evaluation
-- [ ] Code improvements:
-  - [ ] Tool input validation (e.g. order_info JSON)
-  - [ ] Retry logic
-  - [ ] Fallback responses
-  - [ ] Add more logging
-  - [ ] Add unit tests for ZenBot (emotion escalation, LLM unreachable, no tool call, full pipeline flow, cancel flow with policy deny, cancel flow with API error)
-  - [ ] Add LLM model download to utils
-  - [ ] Add a script for syththetic data validation (test headers, chack if IDs are unique, check if order info JSON is valid, check if API status and policy values)
+### 🛠️ Feature Expansion
+- [ ] Integrate additional APIs and support more user intents
+- [ ] Add tool call confirmation for ambiguous or low-confidence user inputs
+- [ ] Implement Retrieval-Augmented Generation (RAG)
+- [ ] Use real-world data for evaluation in addition to synthetic examples
+
+### 🧠 LLM Model Improvements
+- [ ] Switch to a newer and larger Mistral model ([Mistral-Small-3.1-24B-Instruct-2503](https://huggingface.co/bartowski/mistralai_Mistral-Small-3.1-24B-Instruct-2503-GGUF))
+- [ ] Experiment with alternative models, e.g. [Llama-xLAM-2-70b-fc-r](https://huggingface.co/DevQuasar/Salesforce.Llama-xLAM-2-70b-fc-r-GGUF)
+      (top of [Berkeley Function-Calling Leaderboard](https://gorilla.cs.berkeley.edu/leaderboard.html), as of 2025‑04‑13)
+- [ ] Use 8-bit quantization or full-precision model depending on latency and memory constraints
+- [ ] Fine-tune the LLM for domain-specific improvements
+- [ ] Explore hyperparameter tuning (e.g., temperature)
+
+### 📏 Evaluation & Testing
+- [ ] Improve the diversity and realism of the synthetic dataset
+- [ ] Introduce statistical significance testing for evaluation metrics
+- [ ] Add meta-evaluation to assess the reliability of the LLM judge
+- [ ] Evaluate model performance on:
+  - [ ] Safety (e.g., avoidance of sensitive information leakage)
+  - [ ] Hallucinations
+  - [ ] Sentiment detection accuracy
+
+### 📈 Experiment Tracking
+- [ ] Integrate with [Weave](https://github.com/wandb/weave) or similar tools for experiment management and evaluation visualization
+
+### 🧪 Code Quality & Resilience
+- [ ] Improve tool input validation
+- [ ] Add retry logic and fallback mechanisms for API failures
+- [ ] Expand logging for better observability
+- [ ] Strengthen unit test coverage:
+  - [ ] Emotion-based escalation logic
+  - [ ] LLM unavailability fallback
+  - [ ] No tool call flow
+  - [ ] Full pipeline flow
+  - [ ] Cancellation with policy denial
+  - [ ] Cancellation with API error
+- [ ] Add utility for automated LLM model downloads
