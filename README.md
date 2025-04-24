@@ -33,6 +33,7 @@ This project implements a fully generative chatbot. It integrates with two API e
 - **Policy-aware agent**: Enforces return windows, quotas, and blackout dates as per company rules.
 - **Local, fast LLM reasoning**: Makes tool-augmented decisions using the compact LLM model running locally.
 - **Sentiment detection**: Flags negative sentiment before routing to tool logic or escalation paths.
+- **Baseline A/B testing**: Includes a classical rule-based baseline agent for side-by-side comparison and performance benchmarking.
 - **End-to-end evaluation**: Computes quantitative and qualitative metrics for a synthetic evaluation datatest using an LLM judge.
 
 # 🛠 Installation
@@ -86,18 +87,39 @@ Pytest-based tests validate core behaviors and policy flow correctness.
 
 # 🚀 How to Run
 
-- **Baseline**: 
-```
-python src/baseline_agent.py
+This section shows how to run both agents for a single input prompt and input order information in JSON format.
+
+## Baseline rule-based agent
+
+```bash
+input_prompt="track my order"
+order_info='{"order_id":"123","order_date":"2025-04-20","user_id":"user_1"}'
+log_filepath=logs/baseline.log
+
+bash run_baseline.sh ${input_prompt} ${order_info} ${log_filepath}
 ```
 
-- **ZenBot**:
+## ZenBot
 
-Download [Mistral-7B-Instruct-v0.3.Q4_K_M.gguf](https://huggingface.co/MaziyarPanahi/Mistral-7B-Instruct-v0.3-GGUF/blob/main/Mistral-7B-Instruct-v0.3.Q4_K_M.gguf) model.
+1. Download [Mistral-7B-Instruct-v0.3.Q4_K_M.gguf](https://huggingface.co/MaziyarPanahi/Mistral-7B-Instruct-v0.3-GGUF/blob/main/Mistral-7B-Instruct-v0.3.Q4_K_M.gguf) model.
 
+2. Run `llama-server`:
+
+<cite>Please note: The port is hard-coded to 8080 in `src/zenbot.py`.</cite>
+
+```bash
+model_path=pretrained/gguf_models/Mistral-7B-Instruct-v0.3.Q4_K_M.gguf
+llama-server -m ${model_path} --port 8080 --jinja
 ```
-llama-server -m pretrained/gguf_models/Mistral-7B-Instruct-v0.3.Q4_K_M.gguf --port 8080 --jinja
-python src/zenbot.py
+
+3. Run ZenBot
+
+```bash
+input_prompt="track my order"
+order_info='{"order_id":"123","order_date":"2025-04-20","user_id":"user_1"}'
+log_filepath=logs/zenbot.log
+
+bash run_zenbot.sh ${input_prompt} ${order_info} ${log_filepath}
 ```
 
 # 📁 Project Structure
