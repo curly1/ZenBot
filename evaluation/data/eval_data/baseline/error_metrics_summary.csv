@@ -1,0 +1,5 @@
+metric_group,note,accuracy,error_rate,unknown_ratio,mean,std,min,50%,95%,99%,max,>1s_ratio
+policy_error,Not enough valid data,,,,,,,,,,,
+api_error,Not enough valid data,,,,,,,,,,,
+intent,,0.28,0.72,0.0,,,,,,,,
+latency,,,,,5e-06,7.1e-05,0.0,0.0,0.0,0.0,0.001,0.0

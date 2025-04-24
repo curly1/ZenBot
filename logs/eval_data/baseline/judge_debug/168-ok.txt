@@ -1,0 +1,13 @@
+ {
+  "naturalness": {
+    "score": 4,
+    "reason": "The response is grammatically correct and uses common language, but it does not fully match the user's tone or context."
+  },
+  "coherence": {
+    "score": 4,
+    "reason": "The response is relevant to the user's question about the status of their package, but it does not provide the current status."
+  },
+  "helpfulness": {
+    "score": 2,
+    "reason": "The response does not directly answer the user's question about the current status of their package."
+}}

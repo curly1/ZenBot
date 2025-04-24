@@ -1,0 +1,14 @@
+ {
+  "naturalness": {
+    "score": 3,
+    "reason": "The response is somewhat natural, but it could be more conversational and empathetic."
+  },
+  "coherence": {
+    "score": 4,
+    "reason": "The response is relevant to the user's statement about cancel culture, but it does not provide a direct response or discussion."
+  },
+  "helpfulness": {
+    "score": 2,
+    "reason": "The response does not address the user's question or provide any insight or discussion about cancel culture."
+  }
+}

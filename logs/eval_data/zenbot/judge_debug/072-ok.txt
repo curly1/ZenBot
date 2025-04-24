@@ -1,0 +1,14 @@
+ {
+  "naturalness": {
+    "score": 4,
+    "reason": "The response is written in a conversational and polite tone, using simple and clear language."
+  },
+  "coherence": {
+    "score": 5,
+    "reason": "The response directly addresses the user's request and provides a clear and concise explanation of the policy regarding order cancellations."
+  },
+  "helpfulness": {
+    "score": 4,
+    "reason": "The response informs the user that their order cannot be canceled, which is a helpful response to their request."
+  }
+}

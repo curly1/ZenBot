@@ -1,0 +1,14 @@
+ {
+  "naturalness": {
+    "score": 4,
+    "reason": "The response is written in a friendly and empathetic tone, using conversational language."
+  },
+  "coherence": {
+    "score": 5,
+    "reason": "The response directly addresses the user's concern about cancelling an order and provides a clear explanation of the company's policy."
+  },
+  "helpfulness": {
+    "score": 4,
+    "reason": "While the response cannot fulfill the user's request to cancel the order, it offers an alternative by suggesting they contact customer service for further assistance."
+  }
+}

@@ -1,0 +1,14 @@
+ {
+  "naturalness": {
+    "score": 4,
+    "reason": "The response is written in a polite and empathetic tone, which makes it sound natural."
+  },
+  "coherence": {
+    "score": 5,
+    "reason": "The response directly addresses the user's concern about canceling a purchase and provides a clear explanation of the current policy."
+  },
+  "helpfulness": {
+    "score": 4,
+    "reason": "While the response cannot fulfill the user's request to cancel the purchase, it does provide a clear explanation of the current policy, which is helpful in managing expectations."
+  }
+}

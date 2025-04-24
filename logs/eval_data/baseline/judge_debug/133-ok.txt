@@ -1,0 +1,13 @@
+ {
+  "naturalness": {
+    "score": 3,
+    "reason": "The response is simple and direct, but the lack of personalization makes it less natural."
+  },
+  "coherence": {
+    "score": 5,
+    "reason": "The response is relevant to the user's question and maintains a logical flow."
+  },
+  "helpfulness": {
+    "score": 2,
+    "reason": "The response does not provide the requested information about the colors available in the shirt."
+}}

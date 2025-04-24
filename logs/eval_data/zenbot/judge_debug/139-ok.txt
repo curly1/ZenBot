@@ -1,0 +1,14 @@
+ {
+  "naturalness": {
+    "score": 3,
+    "reason": "The response is brief and to the point, but it lacks the conversational flow and politeness that a more natural response would have."
+  },
+  "coherence": {
+    "score": 5,
+    "reason": "The response directly addresses the user's question about resetting a password, which demonstrates a high level of coherence."
+  },
+  "helpfulness": {
+    "score": 1,
+    "reason": "The response does not provide any actionable steps or guidance for resetting a password, making it unhelpful."
+  }
+}

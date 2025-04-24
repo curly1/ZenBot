@@ -1,0 +1,14 @@
+ {
+  "naturalness": {
+    "score": 4,
+    "reason": "The response is written in a polite and friendly tone, which is natural for customer service interactions."
+  },
+  "coherence": {
+    "score": 5,
+    "reason": "The response directly addresses the user's request to cancel an order, providing a clear and concise answer."
+  },
+  "helpfulness": {
+    "score": 3,
+    "reason": "While the response acknowledges the user's request, it does not offer a solution or further assistance, which could be considered less helpful."
+  }
+}

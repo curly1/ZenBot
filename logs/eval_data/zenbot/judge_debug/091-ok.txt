@@ -1,0 +1,14 @@
+ {
+  "naturalness": {
+    "score": 4,
+    "reason": "The response is written in a conversational and empathetic tone, using common phrases and sentence structures."
+  },
+  "coherence": {
+    "score": 5,
+    "reason": "The response directly addresses the user's request and provides a clear and concise explanation of the situation."
+  },
+  "helpfulness": {
+    "score": 4,
+    "reason": "While the response cannot fulfill the user's request to cancel the purchase, it does provide an alternative solution (checking the email for shipping details) and offers to address any other questions or concerns."
+  }
+}

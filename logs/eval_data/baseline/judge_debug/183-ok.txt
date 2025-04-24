@@ -1,0 +1,13 @@
+ {
+  "naturalness": {
+    "score": 3,
+    "reason": "The response is somewhat natural but lacks contextual understanding of the user's message, which did not mention any order."
+  },
+  "coherence": {
+    "score": 2,
+    "reason": "The response does not coherently address the user's message, which did not mention any order."
+  },
+  "helpfulness": {
+    "score": 1,
+    "reason": "The response does not seem helpful as it does not address the user's intent of just browsing and not looking to track or cancel anything."
+}}

@@ -1,0 +1,14 @@
+ {
+  "naturalness": {
+    "score": 1,
+    "reason": "The response is not relevant to the user's question about tracking devices."
+  },
+  "coherence": {
+    "score": 1,
+    "reason": "The response does not provide a coherent answer to the user's question."
+  },
+  "helpfulness": {
+    "score": 1,
+    "reason": "The response does not address the user's question about tracking devices."
+  }
+}

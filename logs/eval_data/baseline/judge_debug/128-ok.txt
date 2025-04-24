@@ -1,0 +1,13 @@
+ {
+  "naturalness": {
+    "score": 3,
+    "reason": "The response is somewhat natural, but it could be more human-like by expressing gratitude or acknowledging the compliment."
+  },
+  "coherence": {
+    "score": 5,
+    "reason": "The response is coherent as it is relevant to the user's statement about the app design."
+  },
+  "helpfulness": {
+    "score": 2,
+    "reason": "The response does not directly address the user's positive sentiment, which could make the user feel unacknowledged."
+}}

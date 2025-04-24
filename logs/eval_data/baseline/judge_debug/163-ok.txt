@@ -1,0 +1,14 @@
+ {
+  "naturalness": {
+    "score": 3,
+    "reason": "The response is somewhat natural, but it could be more human-like by acknowledging the user's statement and then providing a relevant response."
+  },
+  "coherence": {
+    "score": 2,
+    "reason": "The response is not directly related to the user's statement about the package's status not being important now."
+  },
+  "helpfulness": {
+    "score": 1,
+    "reason": "The response does not address the user's intent or provide any useful information."
+  }
+}

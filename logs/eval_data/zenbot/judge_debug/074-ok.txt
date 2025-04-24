@@ -1,0 +1,14 @@
+ {
+  "naturalness": {
+    "score": 4,
+    "reason": "The response is written in a conversational and polite tone, using common phrases and sentence structures."
+  },
+  "coherence": {
+    "score": 5,
+    "reason": "The response directly addresses the user's concern about cancelling a purchase and provides a clear explanation of the policy."
+  },
+  "helpfulness": {
+    "score": 4,
+    "reason": "While the response does not offer a solution to the user's problem, it provides a clear explanation of the policy and suggests an alternative action."
+  }
+}

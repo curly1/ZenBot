@@ -1,0 +1,14 @@
+ {
+  "naturalness": {
+    "score": 1,
+    "reason": "The response is not natural for the given context as it does not acknowledge the user's message and instead provides an unrelated error message."
+  },
+  "coherence": {
+    "score": 2,
+    "reason": "The response is not coherent with the user's message as it does not address the user's intent."
+  },
+  "helpfulness": {
+    "score": 1,
+    "reason": "The response is not helpful as it does not provide any relevant information or engage in a conversation about the user's message."
+  }
+}

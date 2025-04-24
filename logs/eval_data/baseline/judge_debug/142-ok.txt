@@ -1,0 +1,14 @@
+ {
+  "naturalness": {
+    "score": 3,
+    "reason": "The response is somewhat natural, but it could be more conversational and less formal."
+  },
+  "coherence": {
+    "score": 4,
+    "reason": "The response is relevant to the user's question, but it does not provide a clear answer."
+  },
+  "helpfulness": {
+    "score": 2,
+    "reason": "The response does not address the user's question about the return policy for shoes."
+  }
+}

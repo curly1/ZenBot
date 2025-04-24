@@ -1,0 +1,14 @@
+ {
+  "naturalness": {
+    "score": 1,
+    "reason": "The response is not natural as it does not resemble a typical joke format."
+  },
+  "coherence": {
+    "score": 2,
+    "reason": "The response is not coherent with the user's request for a joke."
+  },
+  "helpfulness": {
+    "score": 1,
+    "reason": "The response does not meet the user's intent of requesting a joke."
+  }
+}

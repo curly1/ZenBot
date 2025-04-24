@@ -1,0 +1,14 @@
+ {
+  "naturalness": {
+    "score": 3,
+    "reason": "The response is somewhat natural, but it could be more conversational and empathetic."
+  },
+  "coherence": {
+    "score": 4,
+    "reason": "The response is relevant to the user's request, but it could be more specific about the inability to undo the purchase."
+  },
+  "helpfulness": {
+    "score": 2,
+    "reason": "The response does not provide a solution or guidance on how to undo the purchase, making it less helpful."
+  }
+}

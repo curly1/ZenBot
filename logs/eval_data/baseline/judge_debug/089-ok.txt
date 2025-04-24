@@ -1,0 +1,14 @@
+ {
+  "naturalness": {
+    "score": 3,
+    "reason": "The response is somewhat natural, but it could be more conversational and empathetic."
+  },
+  "coherence": {
+    "score": 4,
+    "reason": "The response is relevant to the user's message, but it could provide more information about the next steps."
+  },
+  "helpfulness": {
+    "score": 2,
+    "reason": "The response does not address the user's request to cancel a purchase. It only acknowledges that it did not understand the user's message."
+  }
+}

@@ -1,0 +1,14 @@
+ {
+  "naturalness": {
+    "score": 3,
+    "reason": "The response is somewhat natural, but it could be more conversational and empathetic."
+  },
+  "coherence": {
+    "score": 5,
+    "reason": "The response directly addresses the user's statement and provides a clear and relevant answer."
+  },
+  "helpfulness": {
+    "score": 4,
+    "reason": "The response provides a clear and direct answer to the user's question, although it could have been more engaging or informative."
+  }
+}

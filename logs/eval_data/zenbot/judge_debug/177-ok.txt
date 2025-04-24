@@ -1,0 +1,14 @@
+ {
+  "naturalness": {
+    "score": 2,
+    "reason": "The response is not a typical conversational response and lacks the natural flow of human conversation."
+  },
+  "coherence": {
+    "score": 3,
+    "reason": "The response is somewhat relevant to the user's message, but it does not directly address the user's concern or provide any useful information."
+  },
+  "helpfulness": {
+    "score": 1,
+    "reason": "The response does not provide any helpful information or assistance to the user."
+  }
+}

@@ -1,0 +1,14 @@
+ {
+  "naturalness": {
+    "score": 3,
+    "reason": "The response is somewhat natural, but it lacks the expected format of a helpful assistant."
+  },
+  "coherence": {
+    "score": 2,
+    "reason": "The response does not directly address the user's question about changing the delivery address."
+  },
+  "helpfulness": {
+    "score": 1,
+    "reason": "The response does not provide any useful information or guidance for changing the delivery address."
+  }
+}

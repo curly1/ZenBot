@@ -1,0 +1,14 @@
+ {
+  "naturalness": {
+    "score": 4,
+    "reason": "The response is written in a friendly and empathetic tone, which makes it sound natural."
+  },
+  "coherence": {
+    "score": 5,
+    "reason": "The response directly addresses the user's question about their purchase and provides a clear explanation of the issue."
+  },
+  "helpfulness": {
+    "score": 5,
+    "reason": "The response not only acknowledges the user's concern but also offers a solution by suggesting they contact customer support."
+  }
+}

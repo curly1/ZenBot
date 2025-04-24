@@ -1,0 +1,14 @@
+ {
+  "naturalness": {
+    "score": 4,
+    "reason": "The response is grammatically correct and uses common language, but it does not fully match the user's tone or context, as the user did not ask for the status of their package."
+  },
+  "coherence": {
+    "score": 4,
+    "reason": "The response is logically consistent with the user's message, as the user mentioned a package, and the response provides the status of the package."
+  },
+  "helpfulness": {
+    "score": 3,
+    "reason": "While the response provides information about the package, it may not be helpful to the user if they did not ask for the status or if they are not interested in it at the moment."
+  }
+}

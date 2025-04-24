@@ -1,0 +1,14 @@
+ {
+  "naturalness": {
+    "score": 4,
+    "reason": "The response is written in a friendly and empathetic tone, using common phrases and sentence structures."
+  },
+  "coherence": {
+    "score": 5,
+    "reason": "The response directly addresses the user's question about the status of their package and provides a clear explanation of the issue and next steps."
+  },
+  "helpfulness": {
+    "score": 4,
+    "reason": "The response provides a detailed explanation of the issue and offers a solution, although it does not provide specific details about the status of the package."
+  }
+}

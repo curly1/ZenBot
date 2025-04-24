@@ -1,0 +1,14 @@
+ {
+  "naturalness": {
+    "score": 1,
+    "reason": "The response is not natural as it does not acknowledge or engage with the user's statement about cancel culture."
+  },
+  "coherence": {
+    "score": 2,
+    "reason": "The response is not coherent as it does not address the user's question or statement."
+  },
+  "helpfulness": {
+    "score": 1,
+    "reason": "The response is not helpful as it does not provide any information or insight about cancel culture."
+  }
+}

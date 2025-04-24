@@ -1,0 +1,13 @@
+ {
+  "naturalness": {
+    "score": 3,
+    "reason": "The response is somewhat natural, but it could be more human-like by using a more empathetic tone."
+  },
+  "coherence": {
+    "score": 4,
+    "reason": "The response is coherent as it addresses the user's question, but it lacks specific information about the order."
+  },
+  "helpfulness": {
+    "score": 2,
+    "reason": "The response does not provide a clear answer to the user's question about the status of their order."
+}}

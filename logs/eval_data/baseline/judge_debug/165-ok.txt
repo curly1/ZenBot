@@ -1,0 +1,13 @@
+ {
+  "naturalness": {
+    "score": 2,
+    "reason": "The response is not natural as it does not follow a conversational tone and uses technical language."
+  },
+  "coherence": {
+    "score": 3,
+    "reason": "The response is somewhat coherent as it is related to the topic of tracking devices, but the error message makes it less clear."
+  },
+  "helpfulness": {
+    "score": 1,
+    "reason": "The response does not provide a helpful opinion or information about tracking devices."
+}}

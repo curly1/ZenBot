@@ -1,0 +1,14 @@
+ {
+  "naturalness": {
+    "score": 3,
+    "reason": "The response is somewhat natural, but could be more conversational and empathetic."
+  },
+  "coherence": {
+    "score": 4,
+    "reason": "The response is relevant to the user's question, but it could provide more specific information about the process of revoking an order."
+  },
+  "helpfulness": {
+    "score": 2,
+    "reason": "The response does not directly help the user with their request to revoke a recent order."
+  }
+}

@@ -1,0 +1,14 @@
+ {
+  "naturalness": {
+    "score": 3,
+    "reason": "The response is somewhat natural but lacks contextual understanding of the user's statement about not looking to track or cancel anything."
+  },
+  "coherence": {
+    "score": 2,
+    "reason": "The response does not directly address the user's statement and seems unrelated to the conversation."
+  },
+  "helpfulness": {
+    "score": 1,
+    "reason": "The response does not provide any useful information or assistance to the user."
+  }
+}

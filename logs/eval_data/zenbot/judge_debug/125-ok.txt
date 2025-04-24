@@ -1,0 +1,13 @@
+ {
+  "naturalness": {
+    "score": 3,
+    "reason": "The response is grammatically correct but lacks the conversational flow and personal touch expected in a chatbot."
+  },
+  "coherence": {
+    "score": 5,
+    "reason": "The response is logically consistent with the user's question about the colors of the shirt."
+  },
+  "helpfulness": {
+    "score": 2,
+    "reason": "The response does not provide the requested information about the colors of the shirt, making it less helpful."
+}}

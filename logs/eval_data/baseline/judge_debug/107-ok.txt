@@ -1,0 +1,13 @@
+ {
+  "naturalness": {
+    "score": 3,
+    "reason": "The response is simple and direct, but it lacks the conversational flow and naturalness of a human response."
+  },
+  "coherence": {
+    "score": 4,
+    "reason": "The response is relevant to the user's request for a joke, but it does not provide a joke, which makes it less coherent."
+  },
+  "helpfulness": {
+    "score": 2,
+    "reason": "The response does not fulfill the user's request for a joke, making it unhelpful."
+}}

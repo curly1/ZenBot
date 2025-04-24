@@ -1,0 +1,14 @@
+ {
+  "naturalness": {
+    "score": 3,
+    "reason": "The response is somewhat natural, but it could be more conversational and empathetic."
+  },
+  "coherence": {
+    "score": 2,
+    "reason": "The response does not directly address the user's question about locating a recent shipment."
+  },
+  "helpfulness": {
+    "score": 1,
+    "reason": "The response does not provide any useful information or guidance for the user to locate their recent shipment."
+  }
+}

@@ -1,0 +1,13 @@
+ {
+  "naturalness": {
+    "score": 3,
+    "reason": "The response is somewhat natural, but it could be more human-like by providing a more direct answer or guidance."
+  },
+  "coherence": {
+    "score": 2,
+    "reason": "The response is not coherent with the user's question as it does not provide any information or steps to change the email address."
+  },
+  "helpfulness": {
+    "score": 1,
+    "reason": "The response is not helpful as it does not address the user's question or provide any useful information."
+}}

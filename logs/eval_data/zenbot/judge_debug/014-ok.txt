@@ -1,0 +1,14 @@
+ {
+  "naturalness": {
+    "score": 4,
+    "reason": "The response is written in a conversational and friendly tone, using simple and easy-to-understand language."
+  },
+  "coherence": {
+    "score": 5,
+    "reason": "The response directly addresses the user's question about the location of their shipment and provides a clear and concise update."
+  },
+  "helpfulness": {
+    "score": 5,
+    "reason": "The response is helpful as it provides the user with information about the status of their shipment and offers an opportunity for further questions or concerns."
+  }
+}

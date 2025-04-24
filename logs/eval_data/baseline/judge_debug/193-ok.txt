@@ -1,0 +1,13 @@
+ {
+  "naturalness": {
+    "score": 2,
+    "reason": "The response is not directly related to the user's message and lacks a friendly tone."
+  },
+  "coherence": {
+    "score": 3,
+    "reason": "The response is technically coherent, but it does not address the user's intent to just say hi."
+  },
+  "helpfulness": {
+    "score": 1,
+    "reason": "The response does not help the user with their request to just say hi."
+}}

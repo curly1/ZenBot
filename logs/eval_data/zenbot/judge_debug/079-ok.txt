@@ -1,0 +1,14 @@
+ {
+  "naturalness": {
+    "score": 1,
+    "reason": "The response is not natural as it does not resemble a typical chatbot response to a user's request."
+  },
+  "coherence": {
+    "score": 2,
+    "reason": "The response is not coherent as it does not address the user's request to drop the last item they ordered."
+  },
+  "helpfulness": {
+    "score": 1,
+    "reason": "The response is not helpful as it does not provide any solution or action to the user's request."
+  }
+}

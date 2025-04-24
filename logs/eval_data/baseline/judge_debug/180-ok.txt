@@ -1,0 +1,13 @@
+ {
+  "naturalness": {
+    "score": 3,
+    "reason": "The response is somewhat natural, but it doesn't directly address the user's statement about not needing a tracker."
+  },
+  "coherence": {
+    "score": 4,
+    "reason": "The response is coherent as it provides information about the status of a specific order, although it seems unrelated to the user's statement."
+  },
+  "helpfulness": {
+    "score": 2,
+    "reason": "The response does not seem helpful as it does not address the user's statement about not needing a tracker."
+}}

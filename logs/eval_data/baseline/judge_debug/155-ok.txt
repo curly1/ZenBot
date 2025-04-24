@@ -1,0 +1,14 @@
+ {
+  "naturalness": {
+    "score": 4,
+    "reason": "The response is concise and straightforward, using simple language that is easy to understand."
+  },
+  "coherence": {
+    "score": 5,
+    "reason": "The response directly addresses the user's potential interest in order statuses and provides a specific example."
+  },
+  "helpfulness": {
+    "score": 4,
+    "reason": "The response provides the user with information about the status of a specific order, which may be helpful if the user was looking for updates on their order."
+  }
+}

@@ -1,0 +1,14 @@
+ {
+  "naturalness": {
+    "score": 4,
+    "reason": "The response is concise and straightforward, using simple language that is easy to understand."
+  },
+  "coherence": {
+    "score": 5,
+    "reason": "The response directly addresses the user's request to cancel their Netflix subscription."
+  },
+  "helpfulness": {
+    "score": 5,
+    "reason": "The response is helpful as it confirms the cancellation of the user's Netflix subscription."
+  }
+}

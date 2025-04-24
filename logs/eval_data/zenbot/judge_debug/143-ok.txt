@@ -1,0 +1,14 @@
+ {
+  "naturalness": {
+    "score": 1,
+    "reason": "The response is not natural as it does not acknowledge or respond to the user's compliment about the app design."
+  },
+  "coherence": {
+    "score": 2,
+    "reason": "The response is not coherent as it does not relate to the user's message."
+  },
+  "helpfulness": {
+    "score": 1,
+    "reason": "The response is not helpful as it does not address the user's compliment or provide any useful information."
+  }
+}

@@ -1,0 +1,13 @@
+ {
+  "naturalness": {
+    "score": 2,
+    "reason": "The response is not natural as it does not provide a direct answer to the user's question."
+  },
+  "coherence": {
+    "score": 3,
+    "reason": "The response is somewhat coherent as it is related to the topic of the user's question, but it does not provide any useful information."
+  },
+  "helpfulness": {
+    "score": 1,
+    "reason": "The response is not helpful as it does not answer the user's question about the arrival of their order."
+}}

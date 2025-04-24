@@ -1,0 +1,5 @@
+metric_group,precision,recall,f1_score,fpr,fnr,auc,accuracy,error_rate,unknown_ratio,mean,std,min,50%,95%,99%,max,>1s_ratio
+policy_error,1.0,1.0,1.0,0.0,0.0,0.0,,,,,,,,,,,
+api_error,1.0,0.8043478260869565,0.891566265060241,0.0,0.1956521739130435,0.0,,,,,,,,,,,
+intent,,,,,,,0.935,0.065,0.0,,,,,,,,
+latency,,,,,,,,,,6.52901,3.383545,2.366,5.749,11.8681,12.32276,12.616,1.0

@@ -1,0 +1,13 @@
+ {
+  "naturalness": {
+    "score": 2,
+    "reason": "The response is not natural as it does not follow the usual conversational flow and does not acknowledge the user's previous statement."
+  },
+  "coherence": {
+    "score": 3,
+    "reason": "The response is somewhat coherent as it does not contradict the context, but it does not provide any useful information or engage in a meaningful conversation."
+  },
+  "helpfulness": {
+    "score": 1,
+    "reason": "The response is not helpful as it does not address the user's potential needs or provide any relevant information."
+}}
