@@ -61,29 +61,14 @@ brew install llama.cpp
 
 # 🧠 Technical Choices
 
-**Local inference**  
-Lightweight C++ HTTP server (the `llama-server` wrapper from `llama.cpp`) for low-latency, single-node deployment.
-
-**LLM model**  
-`Mistral-7B-Instruct-v0.3` (quantized to `Q4_K_M` and stored in `GGUF` format) balances latency and response quality.
-
-**API simulation**  
-Mock order tracking/cancellation via the `ZENBOT_SIMULATE_API` flag.
-
-**Python wrappers**  
-Internal clients (`OrderTrackingClient`, etc.) encapsulate API logic for clarity and testability.
-
-**Sentiment gating**  
-A lightweight `Transformers` model runs `is_frustrated` checks pre-routing.
-
-**Logging & Observability**  
-Logs detail tool calls, LLM latency, decisions, and flow outcomes.
-
-**Robust evaluation**  
-Quantitative and qualitative metrics benchmark performance.
-
-**Test suite**  
-Pytest-based tests validate core behaviors and policy flow correctness.
+- **Local inference** - Lightweight C++ HTTP server (`llama-server` from `llama.cpp`) for low-latency, single-node deployment.
+- **LLM model** - `Mistral-7B-Instruct-v0.3` (quantized to `Q4_K_M`, `GGUF` format) for a balance of speed and quality.
+- **API simulation** - Mocked order tracking/cancellation via the `ZENBOT_SIMULATE_API` flag.
+- **Python wrappers** - Internal clients (`OrderTrackingClient`, etc.) for clean, testable API integration.
+- **Sentiment gating** - Lightweight `Transformers` model for pre-routing frustration detection (`is_frustrated`).
+- **Logging & observability** - Structured logs capture tool calls, latency, and policy decisions.
+- **Robust evaluation** - Quantitative and qualitative metrics benchmark performance.
+- **Test suite** - Pytest suite verifies flows, edge cases, and policy enforcement logic.
 
 # 🚀 How to Run
 
@@ -209,7 +194,7 @@ Below is a high-level overview of the evaluation process and the metrics used.
 ZenBot’s evaluation follows an iterative, data-driven approach. Each evaluation cycle involves metric analysis, followed by targeted improvements — either in the agent itself, the test data, or the evaluation methodology (e.g., refining the LLM judge).
 
 <p align="center">
-  <img src="docs/evaluation_process.png" alt="Evaluation Process" width="200">
+  <img src="docs/evaluation_process.png" alt="Evaluation Process" width="400">
 </p>
 
 ### Steps
@@ -229,13 +214,13 @@ To evaluate ZenBot in a controlled yet realistic setting, a **synthetic dataset 
 #### Dataset Composition
 
 - **50** tracking requests  
-  — Includes variations with and without the keyword `track`
+  - Includes variations with and without the keyword `track`
 - **50** cancellation requests  
-  — Includes **eligible** and **ineligible** cases, with and without the keyword `cancel`
+  - Includes **eligible** and **ineligible** cases, with and without the keyword `cancel`
 - **50** random requests without intent  
-  — No occurrence of keywords like `track`, `status`, or `cancel`
+  - No occurrence of keywords like `track`, `status`, or `cancel`
 - **50** random requests with misleading keywords  
-  — Contains those keywords but expresses **no actionable intent**
+  - Contains those keywords but expresses **no actionable intent**
 
 #### Structure & Labels
 
@@ -279,11 +264,11 @@ ZenBot is evaluated using a mix of **quantitative**, **qualitative**, and **clas
 #### Latency Breakdown
 
 Latency is reported using five statistics:
-- **Minimum**
-- **Maximum**
-- **Mean**
-- **Median**
-- **Standard deviation (stdev)**
+- Minimum
+- Maximum
+- Mean
+- Median
+- Standard deviation (stdev)
 
 #### Classification Metrics
 
