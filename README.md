@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="#features">Features</a> •
+  <a href="# 🎯 Features">Features</a> •
   <a href="#installation">Installation</a> •
   <a href="#usage">Usage</a> •
   <a href="#license">License</a>
@@ -61,7 +61,7 @@ brew install llama.cpp
 
 **Mock APIs**: Implemented by checking a `ZENBOT_SIMULATE_API` environment variable. When enabled, returning randomized dummy responses for cancellation and tracking calls instead of making real HTTP requests.
 
-**Monitoring & Evaluation**: Weave by Weights & Biases provides powerful, interactive experiment tracking and analysis.
+**Evaluation**: Weave by Weights & Biases provides powerful, interactive experiment tracking and analysis.
 
 # 🚀 How to Run
 
@@ -220,6 +220,7 @@ pytest
 - [ ] Experiment with different hyper-parameters for the LLM model (e.g. temperature)
 - [ ] LLM fine-tuning
 - [ ] Use RAG
+- [ ] Use Weave for experiment tracking and evaluation
 - [ ] Meta evaluation, i.e. validate LLM judge reliability
 - [ ] Evaluate:
   - [ ] safety (e.g. revealing sensitive information)
