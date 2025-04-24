@@ -1,0 +1,10 @@
+2025-04-24 16:05:34,493 |     INFO |                            zenbot.py: 113 | ZenBot started
+2025-04-24 16:05:34,493 |     INFO |                            zenbot.py: 116 | User input: track my order
+2025-04-24 16:05:34,493 |     INFO |                            zenbot.py: 117 | Order info: {'order_id': '123', 'order_date': '2025-04-20', 'user_id': 'user_1'}
+2025-04-24 16:05:41,141 |  WARNING |                       api_clients.py:  65 | Simulating tracking for order 123
+2025-04-24 16:05:44,372 |     INFO |                            zenbot.py: 292 | Tool requested: track_order
+2025-04-24 16:05:44,372 |     INFO |                            zenbot.py: 293 | Policy passed: True
+2025-04-24 16:05:44,372 |     INFO |                            zenbot.py: 294 | API status: pending
+2025-04-24 16:05:44,373 |     INFO |                            zenbot.py: 295 | Tool output: {'status': 'pending', 'order_id': '123', 'message': 'Simulated tracking: pending.'}
+2025-04-24 16:05:44,373 |     INFO |                            zenbot.py: 296 | Final response:  Your order is currently being processed and will be shipped soon. We will keep you updated on its progress. Thank you for your patience.
+2025-04-24 16:05:44,373 |     INFO |                            zenbot.py: 297 | Response time: 9.88 seconds.

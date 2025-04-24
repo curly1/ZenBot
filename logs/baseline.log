@@ -1,0 +1,10 @@
+2025-04-24 16:00:18,292 |     INFO |                          baseline.py:  37 | Baseline agent started
+2025-04-24 16:00:18,292 |     INFO |                          baseline.py:  40 | User input: track my order
+2025-04-24 16:00:18,292 |     INFO |                          baseline.py:  41 | Order info: {'order_id': '123', 'order_date': '2025-04-20', 'user_id': 'user_1'}
+2025-04-24 16:00:18,292 |  WARNING |                       api_clients.py:  65 | Simulating tracking for order 123
+2025-04-24 16:00:18,292 |     INFO |                          baseline.py: 103 | Tool requested: track_order
+2025-04-24 16:00:18,292 |     INFO |                          baseline.py: 104 | Policy passed: True
+2025-04-24 16:00:18,292 |     INFO |                          baseline.py: 105 | API status: in_transit
+2025-04-24 16:00:18,292 |     INFO |                          baseline.py: 106 | Tool output: {'status': 'in_transit', 'order_id': '123', 'message': 'Simulated tracking: in_transit.'}
+2025-04-24 16:00:18,292 |     INFO |                          baseline.py: 107 | Final response: The current status of order 123 is: in_transit.
+2025-04-24 16:00:18,292 |     INFO |                          baseline.py: 108 | Response time: 0.00 seconds.
