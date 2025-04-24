@@ -4,16 +4,21 @@ Evaluation script for Baseline and ZenBot agents: qualitative response quality m
 Usage:
     python evaluate_qualitative_metrics.py \
         --agent baseline \
-        --log-path logs/qualitative.log \
-        --csv data/sample_data.csv
+        --csv-in data/sample_data.csv \
+        --log-path logs/sample_data/baseline_qualitative.log \
+        --csv-out evaluation/data/sample_data/baseline_qualitative.csv
 
 The input CSV must have columns:
     example_id,user_input,order_info_json,correct_tool,correct_policy,correct_api_status
 
-Metrics computed:
+The output CSV will have columns:
+    example_id,naturalness[1-5],coherence[1-5],helpfulness[1-5],binary_pass[0|1]
+
+Metrics computed per dataset:
     - Naturalness (1-5 average)
     - Coherence   (1-5 average)
     - Helpfulness (1-5 average)
+    - Response Quality Pass Rate (0-1 avg)
 """
 import argparse
 import sys
@@ -57,8 +62,10 @@ def build_judge_prompt(user_input: str, response: str) -> dict:
     user = {
         "role": "user",
         "content": (
-            f"User message: {user_input}\n"
-            f"Chatbot response: {response}"
+            f"User message:\n\"\"\"\n{user_input}\n\"\"\"\n\n"
+            "Chatbot response:\n```text\n"
+            f"{response}\n"
+            "```"
         )
     }
     return {"messages": [system, user], "temperature": 0.0}
@@ -70,11 +77,24 @@ def main():
                         help="Which agent to evaluate (module name in src/)")
     parser.add_argument("--log-path", required=True,
                         help="Path to write the evaluation log")
-    parser.add_argument("--csv", required=True,
+    parser.add_argument("--csv-in", required=True,
                         help="Path to input CSV with examples")
+    parser.add_argument("--csv-out", required=True,
+                        help="Path to output CSV with metrics details per response")
     args = parser.parse_args()
 
-    # Configure logger
+    # Validate that the input CSV exists
+    if not os.path.isfile(args.csv_in):
+        parser.error(f"The input CSV file '{args.csv_in}' does not exist.")
+
+    # Ensure the output directory exists
+    output_dir = os.path.dirname(args.csv_out)
+    try:
+        os.makedirs(output_dir, exist_ok=True)
+    except OSError as e:
+        parser.error(f"Could not create output directory '{output_dir}': {e}")
+
+    # Configure logger, log dir creation is handeled here
     logger = logging.getLogger(__name__)
     configure_logger(args.log_path, level=logging.INFO)
 
@@ -86,9 +106,12 @@ def main():
     coherence_scores = []
     helpful_scores = []
     binary_scores = []
+    details = []
+    # Score threshold for binary response quality evaluation
+    binary_threshold = 4
 
     # Read examples
-    with open(args.csv, newline='', encoding='utf-8') as csvfile:
+    with open(args.csv_in, newline='', encoding='utf-8') as csvfile:
         reader = csv.DictReader(csvfile)
         rows = list(reader)
 
@@ -142,16 +165,23 @@ def main():
                 "Example %s %s: score=%s, reason=%s",
                 example_id, key, score, reason
             )
-        # Compute binary pass/fail: average score >= 4
+        # Compute binary pass/fail: average score >= threshold
         avg_score = sum((metrics.get('naturalness',{}).get('score',0),
                          metrics.get('coherence',{}).get('score',0),
                          metrics.get('helpfulness',{}).get('score',0))) / 3
-        binary = 1 if avg_score >= 4 else 0
+        binary = 1 if avg_score >= binary_threshold else 0
         binary_scores.append(binary)
         logger.info(
             "Example %s binary_pass: %d (avg=%.2f)",
             example_id, binary, avg_score
         )
+        details.append({
+            "example_id":   example_id,
+            "naturalness":  metrics.get('naturalness',{}).get('score',0),
+            "coherence":    metrics.get('coherence',{}).get('score',0),
+            "helpfulness":  metrics.get('helpfulness',{}).get('score',0),
+            "binary_pass":  binary
+        })
 
     # Compute averages
     def avg(lst): return statistics.mean(lst) if lst else 0.0
@@ -165,9 +195,16 @@ def main():
         f"Response Quality Pass Rate (0-1 avg): {avg(binary_scores):.2f}"
     )
 
+    with open(args.csv_out, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=details[0].keys())
+        writer.writeheader()
+        writer.writerows(details)
+
+    logger.info("Quantitative details written to %s", args.csv_out)
     logger.info(summary)
+
     pretty_section("📊 Evaluation summary", summary)
-    pretty_section("📜 Log file", f"Log path: {args.log_path}")
+    pretty_section("📜 Log files", f"Log path: {args.log_path}\nOutput details path: {args.csv_out}") 
 
 if __name__ == '__main__':
     main()
