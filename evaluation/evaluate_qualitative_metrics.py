@@ -5,8 +5,8 @@ Usage:
     python evaluation/evaluate_qualitative_metrics.py \
         --agent baseline \
         --csv-in data/sample_data.csv \
-        --log-path logs/sample_data/baseline_qualitative.log \
-        --csv-out evaluation/data/sample_data/baseline_qualitative.csv
+        --log-path logs/sample_data/baseline/qualitative.log \
+        --csv-out evaluation/data/sample_data/baseline/qualitative.csv
 
 The input CSV must have columns:
     example_id,user_input,order_info_json,correct_tool,correct_policy,correct_api_status
@@ -170,7 +170,7 @@ def main():
                     metrics = None
             
             if logger.getEffectiveLevel() == logging.DEBUG:
-                debug_dir = os.path.join(os.path.dirname(args.log_path), f"{args.agent}_judge_debug")
+                debug_dir = os.path.join(os.path.dirname(args.log_path), "judge_debug")
                 os.makedirs(debug_dir, exist_ok=True)
                 # If still no valid metrics, dump raw text for debugging
                 if metrics is None:

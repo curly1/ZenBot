@@ -5,8 +5,8 @@ Usage:
     python evaluation/evaluate_quantitative_metrics.py \
         --agent baseline \
         --csv-in data/sample_data.csv \
-        --log-path logs/sample_data/baseline_quantitative.log \
-        --csv-out evaluation/data/sample_data/baseline_quantitative.csv
+        --log-path logs/sample_data/baseline/quantitative.log \
+        --csv-out evaluation/data/sample_data/baseline/quantitative.csv
 
 The input CSV must have columns:
     example_id,user_input,order_info_json,correct_tool,correct_policy,correct_api_status

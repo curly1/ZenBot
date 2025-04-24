@@ -42,8 +42,8 @@ conda activate zenbot
 2. Download ZenBot code and install the requirements for this project.
 
 ```bash
-git clone <repo_url>
-cd repo
+git clone https://github.com/curly1/ZenBot.git
+cd ZenBot
 pip install -r requirements.txt
 ```
 
@@ -127,7 +127,7 @@ A synthetic dataset was used for evaluation purposes. It was created using an LL
   - **50** **random** requests without keywords (`track`, `status` and `cancel`), **no intent**
   - **50** **random** requests with keywords (`track`, `status` and `cancel`) but **no intent**
 
-Other rults for creating the dataset:
+Other results for creating the dataset:
 
 - Order dates are randomly selected within past 90 days.
 - Each record is labeled with: `example_id`, `user_input`, `order_info_json`, `correct_tool`, `correct_policy`, `correct_api_status`.
@@ -169,7 +169,7 @@ Additional metrics where classification errors are available (i.e. for policy an
 - `ROC curve`
 - `AUC`
 
-After manuall response quality annotation, the following metrics could be computed to measure inter‑rater agreement for qualitative metrics:
+After manual response quality annotation, the following metrics could be computed to measure inter‑rater agreement for qualitative metrics:
 
 - `Cohen's Kappa` for binary metrics (i.e. `Response quality`). This metric assesses the correlation between the outputs of the automated checks and the binary pass-fail scores from the human annotators, while accounting for any biases or skewness towards always passing or failing. It takes into account the possibility of chance agreement.
 
@@ -189,8 +189,8 @@ Evaluation for quantitative metrics:
 python evaluation/evaluate_quantitative_metrics.py \
   --agent {baseline,zenbot} \
   --csv-in data/sample_data.csv \
-  --csv-out evaluation/data/sample_data/{baseline,zenbot}_quantitative.csv \
-  --log-path logs/sample_data/{baseline,zenbot}_quantitative.log
+  --csv-out evaluation/data/sample_data/{baseline,zenbot}/quantitative.csv \
+  --log-path logs/sample_data/{baseline,zenbot}/quantitative.log
 ```
 
 Evaluation for qualitative metrics:
@@ -199,8 +199,8 @@ Evaluation for qualitative metrics:
 python evaluation/evaluate_qualitative_metrics.py \
   --agent {baseline,zenbot} \
   --csv-in data/sample_data.csv \
-  --csv-out evaluation/data/sample_data/{baseline,zenbot}_qualitative.csv \
-  --log-path logs/sample_data/{baseline,zenbot}_qualitative.log
+  --csv-out evaluation/data/sample_data/{baseline,zenbot}/qualitative.csv \
+  --log-path logs/sample_data/{baseline,zenbot}/qualitative.log
 ```
 
 # ✅ Testing
